@@ -19,7 +19,7 @@
     e.preventDefault();
     clearError();
     var u = userEl.value.trim();
-    var p = passEl.value;
+    var p = passEl.value.trim();
     if (!u || !p) { showError("İstifadəçi adı və şifrəni daxil edin."); return; }
 
     var res = window.DB.authenticate(u, p);

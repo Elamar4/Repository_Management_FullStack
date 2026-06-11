@@ -29,6 +29,7 @@
         <a href="#" class="nav-link" data-section="inventorySection">📦 Anbar</a>
         <a href="#" class="nav-link" data-section="productsSection">📦 Kateqoriyalar</a>
         <a href="#" class="nav-link" data-section="reportsSection">📊 Hesabatlar</a>
+        <a href="#" class="nav-link" data-section="usersSection">👤 İşçilər</a>
       </nav>
 
       <div class="sidebar-footer">
@@ -315,6 +316,32 @@
               </div>
             </div>
             <div id="reportsBox" class="report-grid"></div>
+          </div>
+        </div>
+
+        <div id="usersSection" class="page-section">
+          <div class="section-card">
+            <div class="section-header">
+              <div>
+                <h2>İşçilər</h2>
+                <p>Sistem işçiləri və rolları (yalnız Admin)</p>
+              </div>
+            </div>
+            <div id="usersSummaryGrid" class="report-grid debt-summary-grid"></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ad</th>
+                    <th>İstifadəçi adı</th>
+                    <th>Rol</th>
+                    <th>Telefon</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -665,7 +692,10 @@
     </div>
   </div>
 
+  <script src="js/seed-data.js"></script>
+  <script src="js/data.js"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/ui-enhance.js"></script>
+  <script src="js/dashboard-roles.js"></script>
 </body>
 </html>

@@ -1649,3 +1649,33 @@ td[colspan] {
 .logout-modal-card .modal-actions { justify-content: center; }
 .logout-confirm-btn { background: #dc2626; border-color: #dc2626; color: #fff; }
 .logout-confirm-btn:hover { background: #b91c1c; border-color: #b91c1c; }
+
+/* ============ İstifadəçi adı + rol etiketi (header) ============ */
+.header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.current-user {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+  background: var(--card-soft); border: 1px solid var(--line);
+  padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+}
+
+/* İcazə ilə gizlədilən statik elementlər */
+.perm-hidden { display: none !important; }
+
+/* ----- İstifadəçi (User) rolu: yarat/dəyiş/sil gizlənir.
+   Baxış, çap və ödəniş düymələri görünür (yalnız UX — əsl yoxlama backend-də). */
+body.role-user .action-btn.delete,
+body.role-user .action-btn[onclick*="delete"],
+body.role-user .action-btn[onclick*="closeInvoice"],
+body.role-user .action-btn[onclick*="openCustomerModal"],
+body.role-user .action-btn[onclick*="openCatalogModal"],
+body.role-user .action-btn[onclick*="openPoleCategoryModal"],
+body.role-user .action-btn[onclick*="editStandardProduct"],
+body.role-user .action-btn[onclick*="extendInvoiceOneMonth"],
+body.role-user .action-btn[onclick*="editCustomerHistoryEntry"],
+body.role-user .action-btn[onclick*="openReturnModal"],
+body.role-user .action-btn[onclick*="'debt-add'"],
+body.role-user .action-btn[onclick*="'deposit-add'"],
+body.role-user .action-btn[onclick*="'deposit-remove'"] {
+  display: none !important;
+}

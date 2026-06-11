@@ -1588,10 +1588,12 @@ function switchSection(sectionId, clickedLink) {
     depositsSection: ['Depozitlər', 'Müştəri depozit balansları'],
     inventorySection: ['Anbar', 'Malların qalıq nəzarəti'],
     productsSection: ['Kateqoriyalar', 'Əlavə və xidmət kateqoriyaları'],
-    reportsSection: ['Hesabatlar', 'Ümumi statistika']
+    reportsSection: ['Hesabatlar', 'Ümumi statistika'],
+    usersSection: ['İşçilər', 'İşçi idarəetməsi']
   };
-  pageTitle.textContent = titles[sectionId][0];
-  pageSubtitle.textContent = titles[sectionId][1];
+  var t = titles[sectionId] || ['', ''];
+  pageTitle.textContent = t[0];
+  pageSubtitle.textContent = t[1];
 }
 
 function openModal(modal) { modal.classList.remove('hidden'); }
