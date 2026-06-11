@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kateqoriyalar — Kapital A.S. MMC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/categories.css" />
+</head>
+<body data-page="categories" data-title="Kateqoriyalar" data-subtitle="Aylıq/günlük növlər, Lesa və Dəmir Dirək">
+  <div id="appLoader"><div class="loader-spinner"></div></div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="app">
+    <div data-shell-sidebar></div>
+    <main class="main">
+      <div data-shell-header></div>
+      <section class="content">
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <h2>Kateqoriyalar</h2>
+              <p>Hər kateqoriya <strong>aylıq</strong> və ya <strong>günlük</strong> icarə ola bilər</p>
+            </div>
+            <div class="toolbar-row">
+              <button class="primary-btn" id="addCatBtn" data-perm="create" type="button">+ Kateqoriya əlavə et</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ad</th>
+                  <th>Növ</th>
+                  <th>Ana kateqoriya</th>
+                  <th>Məhsul sayı</th>
+                  <th>Qeyd</th>
+                  <th>Əməliyyat</th>
+                </tr>
+              </thead>
+              <tbody id="catTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/ui-enhance.js"></script>
+  <script src="js/categories.js"></script>
+</body>
+</html>

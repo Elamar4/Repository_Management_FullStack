@@ -1,0 +1,1180 @@
+const STORAGE_KEYS = {
+  customers: 'lesa_customers_v4',
+  invoices: 'lesa_invoices_v4',
+  extraCategories: 'lesa_extra_categories_v4',
+  serviceCategories: 'lesa_service_categories_v4',
+  standardProducts: 'lesa_standard_products_v1',
+  poleCategories: 'lesa_pole_categories_v1'
+};
+
+const ONE_SIDE_BOY_DICT_RATE = 3;
+const BOY_DICT_FLAT_RATE = 6;
+const KSOK_DICT_RATE = 3;
+const TAKHTA_METER_RATE = 0.6;
+const ONE_SIDE_BOY_DICT_FIXED_SIDE = 1.52;
+
+function getStorageData(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (error) {
+    console.error('Storage read error', key, error);
+    return fallback;
+  }
+}
+
+function setStorageData(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+const LEGACY_KEYS = {
+  customers: 'lesa_customers_v2',
+  invoices: 'lesa_invoices_v2',
+  extraCategories: 'lesa_extra_categories_v2',
+  serviceCategories: 'lesa_service_categories_v2',
+  standardProducts: 'lesa_standard_products_v1',
+  poleCategories: 'lesa_pole_categories_v1'
+};
+
+function getAnyStorageData(primaryKey, legacyKey, fallback) {
+  const primary = getStorageData(primaryKey, null);
+  if (primary !== null) return primary;
+  const legacy = getStorageData(legacyKey, null);
+  return legacy !== null ? legacy : fallback;
+}
+
+
+
+function getStandardProducts(){
+  const defaults = [
+    { id:'boy-dikt', category:'Boy dikt', price:6, unit:'ədəd' },
+    { id:'bir-terefi-boy-dikt', category:'Bir tərəfi boy dikt', price:3, unit:'m²' },
+    { id:'ksok-dikt', category:'Ksok dikt', price:3, unit:'m²' },
+    { id:'taxta', category:'Taxta', price:0.60, unit:'m' },
+    { id:'tekerli-lesa', category:'Təkərli lesa', price:20, unit:'gün' },
+    { id:'demir-direk', category:'Dəmir dirək', price:0, unit:'ədəd' },
+    { id:'neqliyyat', category:'Nəqliyyat', price:0, unit:'səfər' }
+  ];
+  const saved = getStorageData(STORAGE_KEYS.standardProducts, null);
+  if (!Array.isArray(saved) || !saved.length) return defaults;
+  return defaults.map(def => ({...def, ...(saved.find(x => x.id === def.id) || {})}));
+}
+function getStandardPrice(category, fallback){ const item=getStandardProducts().find(x=>x.category===category); return item ? Number(item.price || 0) : fallback; }
+function getPoleCategories(){
+  const saved = getStorageData(STORAGE_KEYS.poleCategories, []);
+  return Array.isArray(saved) ? saved : [];
+}
+
+function formatMoney(value) {
+  return Number(value || 0).toFixed(2);
+}
+
+function formatDateToInput(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function generateInvoiceNo() {
+  const now = new Date();
+  const year = String(now.getFullYear()).slice(-2);
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const stamp = String(Date.now()).slice(-4);
+  return `QM-${year}${month}${stamp}`;
+}
+
+function normalizePhone(value) {
+  return (value || '').replace(/[^\d+ ]/g, '').trim();
+}
+
+function addDaysToDate(dateString, days) {
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return '';
+  d.setDate(d.getDate() + Number(days || 0));
+  return formatDateToInput(d);
+}
+
+function getQueryParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+function cloneData(data) {
+  return JSON.parse(JSON.stringify(data));
+}
+
+function normalizePaymentHistory(invoice) {
+  const list = Array.isArray(invoice?.paymentHistory) ? cloneData(invoice.paymentHistory) : [];
+  if (!list.length && Number(invoice?.paidAmount || 0) > 0) {
+    list.push({
+      id: `pay-legacy-${invoice.id || Date.now()}`,
+      date: invoice.updatedAt || invoice.createdAt || invoice.invoiceDate || new Date().toISOString(),
+      amount: Number(invoice.paidAmount || 0),
+      note: 'İlkin ödəniş',
+      direction: 'in'
+    });
+  }
+  return list.map(entry => ({
+    id: entry.id || `pay-${Date.now()}-${Math.random()}`,
+    date: entry.date || new Date().toISOString(),
+    amount: Number(entry.amount || 0),
+    note: entry.note || '',
+    direction: entry.direction === 'out' ? 'out' : 'in'
+  }));
+}
+
+function getInvoicePaidAmountFromHistory(invoice) {
+  return Number(normalizePaymentHistory(invoice).reduce((sum, entry) => sum + (entry.direction === 'out' ? -Number(entry.amount || 0) : Number(entry.amount || 0)), 0).toFixed(2));
+}
+
+function ensureCustomerShape(customer) {
+  return { ...customer, history: Array.isArray(customer.history) ? customer.history : [] };
+}
+
+function syncInvoiceCustomerHistory(invoice) {
+  customers = customers.map(customer => ensureCustomerShape({
+    ...customer,
+    history: (customer.history || []).filter(entry => !(entry.source === 'invoice' && String(entry.invoiceId) === String(invoice.id)))
+  }));
+
+  const customerIndex = customers.findIndex(c => String(c.id) === String(invoice.customerId)) >= 0
+    ? customers.findIndex(c => String(c.id) === String(invoice.customerId))
+    : customers.findIndex(c => (c.name || '').trim().toLowerCase() === (invoice.customer || '').trim().toLowerCase() && (c.phone || '').trim() === (invoice.phone || '').trim());
+
+  if (customerIndex === -1) {
+    setStorageData(STORAGE_KEYS.customers, customers);
+    return;
+  }
+
+  const extensionTotal = (invoice.extensionHistory || []).reduce((sum, x) => sum + Number(x.addedAmount || 0), 0);
+  const refundTotal = (invoice.returnHistory || []).reduce((sum, x) => sum + Number(x.refundAmount || 0), 0);
+  const baseBorrowAmount = Math.max(Number(invoice.totalAmount || 0) - extensionTotal + refundTotal, 0);
+  const entries = [];
+  if (baseBorrowAmount > 0) {
+    entries.push({ id: `hist-${invoice.id}-base`, date: invoice.createdAt || invoice.invoiceDate || new Date().toISOString(), type: 'Mal götürüb', amount: Number(baseBorrowAmount.toFixed(2)), note: `${invoice.invoiceNo || '-'} üzrə qaimə yaradılıb`, debtChange: Number(baseBorrowAmount.toFixed(2)), depositChange: 0, invoiceId: invoice.id, invoiceNo: invoice.invoiceNo || '', source: 'invoice' });
+  }
+  (invoice.extensionHistory || []).forEach((entry, index) => {
+    const amt = Number(entry.addedAmount || 0); if (amt <= 0) return;
+    entries.push({ id: `hist-${invoice.id}-ext-${index}`, date: entry.date || new Date().toISOString(), type: 'Borc əlavə olunub', amount: amt, note: `${invoice.invoiceNo || '-'} üzrə +${entry.months || 1} ay uzadılıb`, debtChange: amt, depositChange: 0, invoiceId: invoice.id, invoiceNo: invoice.invoiceNo || '', source: 'invoice' });
+  });
+  (invoice.returnHistory || []).forEach((entry, index) => {
+    const amt = Number(entry.refundAmount || 0); if (amt <= 0) return;
+    entries.push({ id: `hist-${invoice.id}-ret-${index}`, date: entry.date || new Date().toISOString(), type: 'Mal qaytarıb', amount: amt, note: `${invoice.invoiceNo || '-'} üzrə qaytarma`, debtChange: -amt, depositChange: 0, invoiceId: invoice.id, invoiceNo: invoice.invoiceNo || '', source: 'invoice' });
+  });
+  normalizePaymentHistory(invoice).forEach((entry, index) => {
+    const amt = Number(entry.amount || 0);
+    if (amt <= 0) return;
+    const direction = entry.direction === 'out' ? 1 : -1;
+    entries.push({
+      id: `hist-${invoice.id}-paid-${index}`,
+      date: entry.date || invoice.updatedAt || invoice.createdAt || new Date().toISOString(),
+      type: direction < 0 ? 'Borc ödədi' : 'Ödəniş düzəlişi',
+      amount: amt,
+      note: entry.note || `${invoice.invoiceNo || '-'} üzrə ödəniş`,
+      debtChange: Number((amt * direction).toFixed(2)),
+      depositChange: 0,
+      invoiceId: invoice.id,
+      invoiceNo: invoice.invoiceNo || '',
+      source: 'invoice'
+    });
+  });
+  const deposit = Number(invoice.depositAmount || 0);
+  if (deposit > 0) entries.push({ id: `hist-${invoice.id}-deposit`, date: invoice.updatedAt || invoice.createdAt || new Date().toISOString(), type: 'Depozit əlavə olunub', amount: deposit, note: `${invoice.invoiceNo || '-'} üzrə depozit`, debtChange: 0, depositChange: deposit, invoiceId: invoice.id, invoiceNo: invoice.invoiceNo || '', source: 'invoice' });
+
+  customers[customerIndex].history = [...(customers[customerIndex].history || []), ...entries.sort((a, b) => new Date(a.date) - new Date(b.date))];
+  setStorageData(STORAGE_KEYS.customers, customers);
+}
+
+let customers = getAnyStorageData(STORAGE_KEYS.customers, LEGACY_KEYS.customers, []);
+let invoices = getAnyStorageData(STORAGE_KEYS.invoices, LEGACY_KEYS.invoices, []).map(invoice => ({
+  ...invoice,
+  paymentHistory: normalizePaymentHistory(invoice),
+  paidAmount: getInvoicePaidAmountFromHistory(invoice)
+}));
+let extraCategories = getAnyStorageData(STORAGE_KEYS.extraCategories, LEGACY_KEYS.extraCategories, []);
+let serviceCategories = getAnyStorageData(STORAGE_KEYS.serviceCategories, LEGACY_KEYS.serviceCategories, []);
+let poleCategories = getPoleCategories();
+customers = customers.map(ensureCustomerShape);
+let items = [];
+let editInvoiceId = getQueryParam('id');
+let selectedCustomerId = '';
+
+const invoiceDate = document.getElementById('invoiceDate');
+const invoiceNo = document.getElementById('invoiceNo');
+const selectedCustomerName = document.getElementById('selectedCustomerName');
+const customerPhone = document.getElementById('customerPhone');
+const customerAddress = document.getElementById('customerAddress');
+const invoiceNote = document.getElementById('invoiceNote');
+const returnDate = document.getElementById('returnDate');
+const pageHeading = document.getElementById('pageHeading');
+const pageSubHeading = document.getElementById('pageSubHeading');
+
+const openCustomerPickerBtn = document.getElementById('openCustomerPickerBtn');
+const openAddCustomerBtn = document.getElementById('openAddCustomerBtn');
+const customerPickerModal = document.getElementById('customerPickerModal');
+const closeCustomerPickerBtn = document.getElementById('closeCustomerPickerBtn');
+const customerSearchInput = document.getElementById('customerSearchInput');
+const customerList = document.getElementById('customerList');
+const addCustomerModal = document.getElementById('addCustomerModal');
+const closeAddCustomerBtn = document.getElementById('closeAddCustomerBtn');
+const newCustomerName = document.getElementById('newCustomerName');
+const newCustomerPhone = document.getElementById('newCustomerPhone');
+const newCustomerExtraPhone = document.getElementById('newCustomerExtraPhone');
+const newCustomerAddress = document.getElementById('newCustomerAddress');
+const saveCustomerBtn = document.getElementById('saveCustomerBtn');
+
+const itemCategory = document.getElementById('itemCategory');
+const itemVariant = document.getElementById('itemVariant');
+const itemQuantity = document.getElementById('itemQuantity');
+const itemPrice = document.getElementById('itemPrice');
+const itemNote = document.getElementById('itemNote');
+const normalItemFields = document.getElementById('normalItemFields');
+const taxtaFields = document.getElementById('taxtaFields');
+const sheetItemFields = document.getElementById('sheetItemFields');
+const lesaFields = document.getElementById('lesaFields');
+const tekerliLesaFields = document.getElementById('tekerliLesaFields');
+const transportFields = document.getElementById('transportFields');
+const demirDirekFields = document.getElementById('demirDirekFields');
+
+const taxtaType = document.getElementById('taxtaType');
+const taxtaLength = document.getElementById('taxtaLength');
+const taxtaRate = document.getElementById('taxtaRate');
+const taxtaQuantity = document.getElementById('taxtaQuantity');
+const taxtaPrice = document.getElementById('taxtaPrice');
+
+const sheetSideA = document.getElementById('sheetSideA');
+const sheetSideB = document.getElementById('sheetSideB');
+const sheetArea = document.getElementById('sheetArea');
+const sheetRate = document.getElementById('sheetRate');
+const sheetQuantity = document.getElementById('sheetQuantity');
+const sheetPrice = document.getElementById('sheetPrice');
+
+const lesaHeadCount = document.getElementById('lesaHeadCount');
+const lesaHeadPrice = document.getElementById('lesaHeadPrice');
+const lesaLongRodCount = document.getElementById('lesaLongRodCount');
+const lesaShortRodCount = document.getElementById('lesaShortRodCount');
+const lesaFreeTaxtaCount = document.getElementById('lesaFreeTaxtaCount');
+const lesaExtraTaxtaCount = document.getElementById('lesaExtraTaxtaCount');
+const lesaExtraTaxtaPrice = document.getElementById('lesaExtraTaxtaPrice');
+
+const tekerliHeadCount = document.getElementById('tekerliHeadCount');
+const tekerliRodCount = document.getElementById('tekerliRodCount');
+const tekerliVilkaCount = document.getElementById('tekerliVilkaCount');
+const tekerliBoardCount = document.getElementById('tekerliBoardCount');
+const tekerliExtraBoardCount = document.getElementById('tekerliExtraBoardCount');
+const tekerliExtraBoardPrice = document.getElementById('tekerliExtraBoardPrice');
+const tekerliDayCount = document.getElementById('tekerliDayCount');
+const tekerliDailyPrice = document.getElementById('tekerliDailyPrice');
+
+const demirDirekCategorySelect = document.getElementById('demirDirekCategorySelect');
+const demirDirekQuantity = document.getElementById('demirDirekQuantity');
+const demirDirekPrice = document.getElementById('demirDirekPrice');
+const demirDirekPalesCount = document.getElementById('demirDirekPalesCount');
+const demirDirekNote = document.getElementById('demirDirekNote');
+
+const transportType = document.getElementById('transportType');
+const transportPrice = document.getElementById('transportPrice');
+const transportNote = document.getElementById('transportNote');
+
+const addItemBtn = document.getElementById('addItemBtn');
+const itemsTableBody = document.getElementById('itemsTableBody');
+const totalAmount = document.getElementById('totalAmount');
+const paidAmount = document.getElementById('paidAmount');
+const depositAmount = document.getElementById('depositAmount');
+const remainingDebt = document.getElementById('remainingDebt');
+const saveInvoiceBtnTop = document.getElementById('saveInvoiceBtnTop');
+
+function seedInitialData() {
+  if (!customers.length) {
+    customers = [
+      { id: String(Date.now()), name: 'Rəşad Məmmədov', phone: '050 555 11 22', extraPhone: '051 111 22 33', address: 'Bakı', history: [] },
+      { id: String(Date.now() + 1), name: 'Kamran İnşaat', phone: '051 444 66 88', extraPhone: '', address: 'Xırdalan', history: [] }
+    ];
+    setStorageData(STORAGE_KEYS.customers, customers);
+  }
+
+  if (!extraCategories.length) {
+    extraCategories = [
+      { id: 'extra-default-1', name: 'Əlavə alət', price: 10, unit: 'ədəd', note: 'Əlavə kateqoriya nümunəsi' }
+    ];
+    setStorageData(STORAGE_KEYS.extraCategories, extraCategories);
+  }
+
+  if (!serviceCategories.length) {
+    serviceCategories = [
+      { id: 'service-default-1', name: 'Quraşdırma xidməti', price: 25, unit: 'xidmət', note: 'Bir dəfəlik xidmət' }
+    ];
+    setStorageData(STORAGE_KEYS.serviceCategories, serviceCategories);
+  }
+}
+
+function setTodayDefaults() {
+  const today = new Date();
+  if (!invoiceDate.value) invoiceDate.value = formatDateToInput(today);
+  if (!returnDate.value) {
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    returnDate.value = formatDateToInput(nextMonth);
+  }
+  if (!invoiceNo.value.trim()) invoiceNo.value = generateInvoiceNo();
+}
+
+function syncReturnDateToNextMonth() {
+  if (!invoiceDate.value) return;
+  const selected = new Date(invoiceDate.value);
+  if (Number.isNaN(selected.getTime())) return;
+  selected.setMonth(selected.getMonth() + 1);
+  returnDate.value = formatDateToInput(selected);
+}
+
+function getCategoryOptions() {
+  return [
+    { value: '', label: 'Kateqoriya seç' },
+    { value: 'Lesa', label: 'Lesa' },
+    { value: 'Təkərli lesa', label: 'Təkərli lesa' },
+    { value: 'Taxta', label: 'Taxta' },
+    { value: 'Dəmir dirək', label: 'Dəmir dirək' },
+    { value: 'Bir tərəfi boy dikt', label: 'Bir tərəfi boy dikt' },
+    { value: 'Boy dikt', label: 'Boy dikt' },
+    { value: 'Ksok dikt', label: 'Ksok dikt' },
+    { value: 'Nəqliyyat', label: 'Nəqliyyat' },
+    { value: 'Əlavə kateqoriya', label: 'Əlavə kateqoriyası' },
+    { value: 'Xidmət', label: 'Xidmət kateqoriyası' }
+  ];
+}
+
+function renderCategorySelect() {
+  itemCategory.innerHTML = getCategoryOptions().map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+}
+
+function hideAllItemBlocks() {
+  normalItemFields.classList.add('hidden');
+  taxtaFields.classList.add('hidden');
+  sheetItemFields.classList.add('hidden');
+  lesaFields.classList.add('hidden');
+  tekerliLesaFields.classList.add('hidden');
+  transportFields.classList.add('hidden');
+  demirDirekFields?.classList.add('hidden');
+}
+
+function setVariantOptions(list, selectedId = '') {
+  itemVariant.innerHTML = list.map(item => `<option value="${item.id}">${item.name}</option>`).join('');
+  if (selectedId) itemVariant.value = selectedId;
+}
+
+function setupSheetFieldsByCategory(category) {
+  if (category === 'Bir tərəfi boy dikt') {
+    sheetSideA.value = ONE_SIDE_BOY_DICT_FIXED_SIDE;
+    sheetSideA.readOnly = true;
+    sheetRate.value = String(getStandardPrice('Bir tərəfi boy dikt', ONE_SIDE_BOY_DICT_RATE));
+    if (!sheetSideB.value) sheetSideB.value = '1.00';
+    recalcSheetPrice();
+    return;
+  }
+  if (category === 'Ksok dikt') {
+    sheetSideA.value = '';
+    sheetSideA.readOnly = false;
+    sheetRate.value = String(getStandardPrice('Ksok dikt', KSOK_DICT_RATE));
+    if (!sheetSideB.value) sheetSideB.value = '0.50';
+    recalcSheetPrice();
+  }
+}
+
+function refreshCategoryUI() {
+  const category = itemCategory.value;
+  hideAllItemBlocks();
+
+  if (!category) return;
+  if (category === 'Lesa') { lesaFields.classList.remove('hidden'); return; }
+  if (category === 'Təkərli lesa') { tekerliLesaFields.classList.remove('hidden'); return; }
+  if (category === 'Taxta') { taxtaRate.value = formatMoney(getStandardPrice('Taxta', TAKHTA_METER_RATE)); taxtaFields.classList.remove('hidden'); recalcTaxtaPrice(); return; }
+  if (category === 'Dəmir dirək') { fillDemirDirekCategorySelect(); demirDirekFields.classList.remove('hidden'); return; }
+  if (category === 'Bir tərəfi boy dikt' || category === 'Ksok dikt') { sheetItemFields.classList.remove('hidden'); setupSheetFieldsByCategory(category); return; }
+  if (category === 'Nəqliyyat') { transportFields.classList.remove('hidden'); return; }
+
+  normalItemFields.classList.remove('hidden');
+  if (category === 'Boy dikt') {
+    setVariantOptions([{ id: 'boy-dikt', name: 'Boy dikt' }], 'boy-dikt');
+    itemPrice.value = formatMoney(getStandardPrice('Boy dikt', BOY_DICT_FLAT_RATE));
+    itemQuantity.value = '1';
+    return;
+  }
+
+  if (category === 'Əlavə kateqoriya') {
+    setVariantOptions(extraCategories);
+    const current = extraCategories.find(x => x.id === itemVariant.value) || extraCategories[0];
+    itemPrice.value = current ? formatMoney(current.price) : '0.00';
+    itemNote.value = current?.note || '';
+    return;
+  }
+
+  if (category === 'Xidmət') {
+    setVariantOptions(serviceCategories);
+    const current = serviceCategories.find(x => x.id === itemVariant.value) || serviceCategories[0];
+    itemPrice.value = current ? formatMoney(current.price) : '0.00';
+    itemQuantity.value = '1';
+    itemNote.value = current?.note || '';
+  }
+}
+
+function recalcTaxtaPrice() {
+  const length = Number(taxtaLength.value || 0);
+  const rate = Number(taxtaRate.value || 0);
+  const quantity = Number(taxtaQuantity.value || 0);
+  taxtaPrice.value = (length * rate * quantity).toFixed(2);
+}
+
+function recalcSheetPrice() {
+  const sideA = Number(sheetSideA.value || 0);
+  const sideB = Number(sheetSideB.value || 0);
+  const rate = Number(sheetRate.value || 0);
+  const quantity = Number(sheetQuantity.value || 0);
+  const area = sideA * sideB;
+  sheetArea.value = area.toFixed(2);
+  sheetPrice.value = (area * rate * quantity).toFixed(2);
+}
+
+function calculateLesaSubtotal(data) {
+  const boardPrice = Number(data.lesaExtraTaxtaPrice || 3);
+  return (Number(data.lesaHeadCount || 0) * Number(data.lesaHeadPrice || 0)) + (Number(data.lesaFreeTaxtaCount || 0) * boardPrice) + (Number(data.lesaExtraTaxtaCount || 0) * boardPrice);
+}
+
+function calculateTekerliLesaSubtotal(data) {
+  return (Number(data.dayCount || 0) * Number(data.dailyPrice || 0)) + (Number(data.extraBoardCount || 0) * Number(data.extraBoardPrice || 0));
+}
+
+function openCustomerPicker() {
+  customerPickerModal.classList.remove('hidden');
+  customerSearchInput.value = '';
+  renderCustomerList(customers);
+  setTimeout(() => customerSearchInput.focus(), 50);
+}
+
+function closeCustomerPicker() { customerPickerModal.classList.add('hidden'); }
+function openAddCustomer() {
+  addCustomerModal.classList.remove('hidden');
+  newCustomerName.value = '';
+  newCustomerPhone.value = '';
+  newCustomerExtraPhone.value = '';
+  newCustomerAddress.value = '';
+}
+function closeAddCustomer() { addCustomerModal.classList.add('hidden'); }
+
+function selectCustomer(customer) {
+  selectedCustomerId = customer.id || '';
+  selectedCustomerName.value = customer.name || '';
+  customerPhone.value = customer.phone || '';
+  customerAddress.value = customer.address || '';
+  closeCustomerPicker();
+}
+
+function renderCustomerList(list) {
+  if (!list.length) {
+    customerList.innerHTML = '<div class="customer-list-empty">Müştəri tapılmadı</div>';
+    return;
+  }
+
+  customerList.innerHTML = list.map(customer => `
+    <button type="button" class="customer-item" data-id="${customer.id}">
+      <div class="customer-item-name">${customer.name || '-'}</div>
+      <div class="customer-item-meta">Telefon: ${customer.phone || '-'}</div>
+      <div class="customer-item-meta">Əlavə telefon: ${customer.extraPhone || '-'}</div>
+      <div class="customer-item-meta">Ünvan: ${customer.address || '-'}</div>
+    </button>
+  `).join('');
+
+  customerList.querySelectorAll('.customer-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const customer = customers.find(c => c.id === btn.dataset.id);
+      if (customer) selectCustomer(customer);
+    });
+  });
+}
+
+function filterCustomers() {
+  const q = customerSearchInput.value.trim().toLowerCase();
+  if (!q) return renderCustomerList(customers);
+  renderCustomerList(customers.filter(customer => [customer.name, customer.phone, customer.extraPhone, customer.address].join(' ').toLowerCase().includes(q)));
+}
+
+function saveCustomer() {
+  const name = newCustomerName.value.trim();
+  const phone = normalizePhone(newCustomerPhone.value);
+  const extraPhone = normalizePhone(newCustomerExtraPhone.value);
+  const address = newCustomerAddress.value.trim();
+  if (!name || !phone) return alert('Müştərinin adı və telefon nömrəsi mütləqdir.');
+
+  const exists = customers.find(customer => customer.name.toLowerCase() === name.toLowerCase() || customer.phone.replace(/\s+/g, '') === phone.replace(/\s+/g, ''));
+  if (exists) return alert('Bu müştəri artıq mövcuddur.');
+
+  const customer = { id: `c-${Date.now()}`, name, phone, extraPhone, address, history: [] };
+  customers.push(customer);
+  customers.sort((a, b) => a.name.localeCompare(b.name, 'az'));
+  setStorageData(STORAGE_KEYS.customers, customers);
+  customerSearchInput.value = '';
+  renderCustomerList(customers);
+  selectCustomer(customer);
+  closeAddCustomer();
+}
+
+function resetInputs() {
+  itemQuantity.value = '1';
+  itemPrice.value = '';
+  itemNote.value = '';
+  taxtaType.value = '';
+  taxtaLength.value = '';
+  taxtaRate.value = formatMoney(TAKHTA_METER_RATE);
+  taxtaQuantity.value = '1';
+  taxtaPrice.value = '';
+  sheetSideA.value = '';
+  sheetSideB.value = '';
+  sheetArea.value = '';
+  sheetRate.value = '';
+  sheetQuantity.value = '1';
+  sheetPrice.value = '';
+  lesaHeadCount.value = '1';
+  lesaHeadPrice.value = '5';
+  lesaLongRodCount.value = '0';
+  lesaShortRodCount.value = '0';
+  lesaFreeTaxtaCount.value = '0';
+  lesaExtraTaxtaCount.value = '0';
+  lesaExtraTaxtaPrice.value = '3';
+  tekerliHeadCount.value = '1';
+  tekerliRodCount.value = '0';
+  tekerliVilkaCount.value = '0';
+  tekerliBoardCount.value = '0';
+  tekerliExtraBoardCount.value = '0';
+  tekerliExtraBoardPrice.value = '2';
+  tekerliDayCount.value = '1';
+  tekerliDailyPrice.value = formatMoney(getStandardPrice('Təkərli lesa', 20));
+  fillDemirDirekCategorySelect();
+  demirDirekQuantity.value = '1';
+  demirDirekPalesCount.value = '0';
+  demirDirekNote.value = '';
+  transportType.value = '';
+  transportPrice.value = '0';
+  transportNote.value = '';
+}
+
+function addNormalItem() {
+  const category = itemCategory.value;
+  const quantity = Number(itemQuantity.value || 0);
+  const price = Number(itemPrice.value || 0);
+  if (quantity <= 0) return alert('Miqdarı düzgün yaz.');
+  if (price < 0) return alert('Qiymət mənfi ola bilməz.');
+
+  let label = category;
+  let unit = 'ədəd';
+  let variantId = '';
+  let fixedFee = false;
+  let note = itemNote.value.trim();
+
+  if (category === 'Boy dikt') {
+    label = 'Boy dikt';
+  }
+
+  if (category === 'Əlavə kateqoriya') {
+    const selected = extraCategories.find(x => x.id === itemVariant.value);
+    if (!selected) return alert('Əlavə kateqoriya seç.');
+    label = selected.name;
+    unit = selected.unit || 'ədəd';
+    variantId = selected.id;
+    if (!note) note = selected.note || '';
+  }
+
+  if (category === 'Xidmət') {
+    const selected = serviceCategories.find(x => x.id === itemVariant.value);
+    if (!selected) return alert('Xidmət seç.');
+    label = selected.name;
+    unit = selected.unit || 'xidmət';
+    variantId = selected.id;
+    fixedFee = true;
+    if (!note) note = selected.note || '';
+  }
+
+  items.push({
+    id: `item-${Date.now()}-${Math.random()}`,
+    category,
+    label,
+    variantId,
+    size: label,
+    unit,
+    quantity,
+    customPrice: price,
+    subtotal: quantity * price,
+    note,
+    isReturnable: category !== 'Xidmət' && category !== 'Nəqliyyat',
+    isRecurring: category !== 'Xidmət' && category !== 'Nəqliyyat',
+    isFixedFee: fixedFee
+  });
+
+  renderItems();
+}
+
+function addTaxtaItem() {
+  const type = taxtaType.value;
+  const length = Number(taxtaLength.value || 0);
+  const rate = Number(taxtaRate.value || 0);
+  const quantity = Number(taxtaQuantity.value || 0);
+  const totalPrice = Number(taxtaPrice.value || 0);
+  if (!type) return alert('Taxta növünü seç.');
+  if (length <= 0) return alert('Uzunluğu düzgün yaz.');
+  if (quantity <= 0) return alert('Miqdarı düzgün yaz.');
+
+  items.push({
+    id: `item-${Date.now()}-${Math.random()}`,
+    category: 'Taxta',
+    label: 'Taxta',
+    size: `${type} / ${length.toFixed(2)} m`,
+    unit: 'ədəd',
+    quantity,
+    customPrice: totalPrice / quantity,
+    subtotal: totalPrice,
+    note: `1 metr: ${formatMoney(rate)} AZN`,
+    isReturnable: true,
+    isRecurring: true
+  });
+  renderItems();
+}
+
+function addSheetItem() {
+  const category = itemCategory.value;
+  const sideA = Number(sheetSideA.value || 0);
+  const sideB = Number(sheetSideB.value || 0);
+  const rate = Number(sheetRate.value || 0);
+  const quantity = Number(sheetQuantity.value || 0);
+  const totalPrice = Number(sheetPrice.value || 0);
+  const area = Number(sheetArea.value || 0);
+  if (sideA <= 0 || sideB <= 0) return alert('Tərəfləri düzgün yaz.');
+  if (quantity <= 0) return alert('Miqdarı düzgün yaz.');
+
+  items.push({
+    id: `item-${Date.now()}-${Math.random()}`,
+    category,
+    label: category,
+    size: `${sideA.toFixed(2)} x ${sideB.toFixed(2)} m`,
+    unit: 'ədəd',
+    quantity,
+    customPrice: totalPrice / quantity,
+    subtotal: totalPrice,
+    note: `Sahə: ${area.toFixed(2)} m², 1 m²: ${formatMoney(rate)} AZN`,
+    isReturnable: true,
+    isRecurring: true
+  });
+  renderItems();
+}
+
+function addLesaItem() {
+  const data = {
+    id: `item-${Date.now()}-${Math.random()}`,
+    category: 'Lesa',
+    label: 'Lesa',
+    size: 'komplekt',
+    unit: 'komplekt',
+    quantity: 1,
+    lesaHeadCount: Number(lesaHeadCount.value || 0),
+    lesaHeadPrice: Number(lesaHeadPrice.value || 0),
+    lesaLongRodCount: Number(lesaLongRodCount.value || 0),
+    lesaShortRodCount: Number(lesaShortRodCount.value || 0),
+    lesaFreeTaxtaCount: Number(lesaFreeTaxtaCount.value || 0),
+    lesaExtraTaxtaCount: Number(lesaExtraTaxtaCount.value || 0),
+    lesaExtraTaxtaPrice: Number(lesaExtraTaxtaPrice.value || 0),
+    isReturnable: true,
+    isRecurring: true
+  };
+  if (data.lesaHeadCount <= 0) return alert('Başlıq sayını yaz.');
+  data.subtotal = calculateLesaSubtotal(data);
+  data.note = `Başlıq: ${data.lesaHeadCount}, Uzun çubuq: ${data.lesaLongRodCount}, Balaca çubuq: ${data.lesaShortRodCount}, Taxta 5/15 3.00: ${data.lesaFreeTaxtaCount}, Əlavə taxta 5/15 3.00: ${data.lesaExtraTaxtaCount}`;
+  items.push(data);
+  renderItems();
+}
+
+function addTekerliLesaItem() {
+  const dayCount = Number(tekerliDayCount.value || 0);
+  const dailyPrice = Number(tekerliDailyPrice.value || 0);
+  const extraBoardCount = Number(tekerliExtraBoardCount.value || 0);
+  const extraBoardPrice = Number(tekerliExtraBoardPrice.value || 0);
+  if (dayCount <= 0) return alert('Gün sayını düzgün yaz.');
+  if (!invoiceDate.value) return alert('Əvvəl tarix seç.');
+
+  const dueDate = addDaysToDate(invoiceDate.value, dayCount);
+  const subtotal = (dayCount * dailyPrice) + (extraBoardCount * extraBoardPrice);
+  items.push({
+    id: `item-${Date.now()}-${Math.random()}`,
+    category: 'Təkərli lesa',
+    label: 'Təkərli lesa',
+    size: 'komplekt',
+    unit: 'komplekt',
+    quantity: 1,
+    rentMode: 'daily',
+    dayCount,
+    dueDate,
+    headCount: Number(tekerliHeadCount.value || 0),
+    rodCount: Number(tekerliRodCount.value || 0),
+    vilkaCount: Number(tekerliVilkaCount.value || 0),
+    boardCount: Number(tekerliBoardCount.value || 0),
+    extraBoardCount,
+    extraBoardPrice,
+    dailyPrice,
+    subtotal,
+    note: `Başlıq: ${Number(tekerliHeadCount.value || 0)}, Çubuq: ${Number(tekerliRodCount.value || 0)}, Vilka: ${Number(tekerliVilkaCount.value || 0)}, Taxta: ${Number(tekerliBoardCount.value || 0)}, Əlavə taxta: ${extraBoardCount}, Gün: ${dayCount}, Vaxtı: ${dueDate}`,
+    isReturnable: true,
+    isRecurring: true
+  });
+  renderItems();
+}
+
+
+function fillDemirDirekCategorySelect(){
+  poleCategories = getPoleCategories();
+  if (!demirDirekCategorySelect) return;
+  if (!poleCategories.length) {
+    demirDirekCategorySelect.innerHTML = '<option value="">Ölçü yoxdur — Kateqoriyalar bölməsindən əlavə et</option>';
+    demirDirekPrice.value = '0.00';
+    return;
+  }
+  demirDirekCategorySelect.innerHTML = poleCategories.map(item => `<option value="${item.id}">${item.name} — ${Number(item.price || 0).toFixed(2)} AZN</option>`).join('');
+  updateDemirDirekPriceFromCategory();
+}
+function getSelectedPoleCategory(){
+  poleCategories = getPoleCategories();
+  return poleCategories.find(x => String(x.id) === String(demirDirekCategorySelect?.value || ''));
+}
+function updateDemirDirekPriceFromCategory(){
+  const item = getSelectedPoleCategory();
+  demirDirekPrice.value = item ? Number(item.price || 0).toFixed(2) : '0.00';
+}
+
+function addDemirDirekItem() {
+  const selectedPole = getSelectedPoleCategory();
+  const quantity = Number(demirDirekQuantity.value || 0);
+  const price = Number(selectedPole?.price || demirDirekPrice.value || 0);
+  const pales = Number(demirDirekPalesCount.value || 0);
+  const note = (demirDirekNote.value || '').trim();
+  if (!selectedPole) return alert('Dəmir dirək ölçüsünü seç. Ölçüləri Kateqoriyalar bölməsindən əlavə edə bilərsən.');
+  if (quantity <= 0) return alert('Dirək sayını düzgün yaz.');
+  if (price < 0) return alert('Qiyməti düzgün yaz.');
+  if (pales < 0) return alert('Pales sayını düzgün yaz.');
+  const size = selectedPole.name || '';
+  const subtotal = quantity * price;
+  const label = `Dəmir dirək ${size}`.trim();
+  const noteParts = [];
+  noteParts.push(`Ölçü: ${size}`);
+  if (pales > 0) noteParts.push(`Pales: ${pales} ədəd`);
+  if (note) noteParts.push(note);
+  items.push({
+    id: `item-${Date.now()}-${Math.random()}`,
+    category: 'Dəmir dirək',
+    poleCategoryId: selectedPole.id,
+    label,
+    poleType: size,
+    size,
+    unit: 'ədəd',
+    quantity,
+    customPrice: price,
+    subtotal,
+    palesCount: pales,
+    note: noteParts.join(' / '),
+    isReturnable: true,
+    isRecurring: true,
+    components: [
+      { key:'direk', label, quantity, returnedQuantity:0, unit:'ədəd', unitPrice:price },
+      ...(pales > 0 ? [{ key:'pales', label:'Pales', quantity:pales, returnedQuantity:0, unit:'ədəd', unitPrice:0 }] : [])
+    ]
+  });
+  renderItems();
+}
+
+function addTransportItem() {
+  if (!transportType.value) return alert('Nəqliyyat növünü seç.');
+  const price = Number(transportPrice.value || 0);
+  if (price < 0) return alert('Qiyməti düzgün yaz.');
+
+  const labels = { gedis: 'Gediş', gelis: 'Gəliş', ikisibirde: 'İkisi bir yerdə' };
+  items.push({
+    id: `item-${Date.now()}-${Math.random()}`,
+    category: 'Nəqliyyat',
+    label: labels[transportType.value],
+    size: labels[transportType.value],
+    unit: 'səfər',
+    quantity: 1,
+    customPrice: price,
+    subtotal: price,
+    note: transportNote.value.trim(),
+    transportType: transportType.value,
+    isReturnable: false,
+    isRecurring: false,
+    isFixedFee: true
+  });
+  renderItems();
+}
+
+function renderItems() {
+  if (!items.length) {
+    itemsTableBody.innerHTML = '<tr><td colspan="7" class="empty-row">Hələ mal əlavə edilməyib</td></tr>';
+    recalcTotals();
+    return;
+  }
+
+  itemsTableBody.innerHTML = items.map((item, index) => `
+    <tr>
+      <td>${item.category}</td>
+      <td>${item.size || '-'}${item.note ? `<div class="item-note">${item.note}</div>` : ''}</td>
+      <td>${item.quantity ?? '-'}</td>
+      <td>${item.unit || '-'}</td>
+      <td>${item.customPrice != null ? formatMoney(item.customPrice) : '-'}</td>
+      <td>${formatMoney(item.subtotal)}</td>
+      <td><button type="button" class="remove-btn" onclick="removeItem(${index})">Sil</button></td>
+    </tr>
+  `).join('');
+  recalcTotals();
+}
+
+window.removeItem = function(index) {
+  items.splice(index, 1);
+  renderItems();
+};
+
+function recalcTotals() {
+  const total = items.reduce((sum, item) => sum + Number(item.subtotal || 0), 0);
+  const paid = Number(paidAmount.value || 0);
+  const deposit = Number(depositAmount.value || 0);
+  const debt = Math.max(total - paid, 0);
+  totalAmount.value = formatMoney(total);
+  remainingDebt.value = formatMoney(debt);
+}
+
+function validateInvoice() {
+  if (!invoiceNo.value.trim()) return alert('Qaimə nömrəsini daxil et.'), false;
+  if (!selectedCustomerName.value.trim()) return alert('Müştəri seç.'), false;
+  if (!customerPhone.value.trim()) return alert('Müştəri telefonu boşdur.'), false;
+  if (!invoiceDate.value || !returnDate.value) return alert('Tarix və ümumi təhvil tarixi mütləqdir.'), false;
+  if (!items.length) return alert('Ən azı 1 mal əlavə et.'), false;
+  return true;
+}
+
+function buildInvoicePayload() {
+  const existingInvoice = editInvoiceId ? invoices.find(x => String(x.id) === String(editInvoiceId)) : null;
+  const previousPaid = Number(existingInvoice?.paidAmount || 0);
+  const nextPaid = Number(paidAmount.value || 0);
+  const paymentDiff = Number((nextPaid - previousPaid).toFixed(2));
+  const paymentHistory = existingInvoice ? normalizePaymentHistory(existingInvoice) : [];
+
+  if (!existingInvoice && nextPaid > 0) {
+    paymentHistory.unshift({
+      id: `pay-${Date.now()}`,
+      date: new Date().toISOString(),
+      amount: nextPaid,
+      note: 'İlkin ödəniş',
+      direction: 'in'
+    });
+  }
+
+  if (existingInvoice && paymentDiff !== 0) {
+    paymentHistory.unshift({
+      id: `pay-${Date.now()}`,
+      date: new Date().toISOString(),
+      amount: Math.abs(paymentDiff),
+      note: paymentDiff > 0 ? 'Qaimə edit zamanı ödəniş əlavə edildi' : 'Qaimə edit zamanı ödəniş düzəlişi',
+      direction: paymentDiff > 0 ? 'in' : 'out'
+    });
+  }
+
+  return {
+    id: editInvoiceId || `inv-${Date.now()}`,
+    invoiceDate: invoiceDate.value,
+    invoiceNo: invoiceNo.value.trim(),
+    customerId: selectedCustomerId || (customers.find(c => (c.name || '').trim().toLowerCase() === selectedCustomerName.value.trim().toLowerCase() && (c.phone || '').trim() === customerPhone.value.trim())?.id || ''),
+    customer: selectedCustomerName.value.trim(),
+    phone: customerPhone.value.trim(),
+    address: customerAddress.value.trim(),
+    note: invoiceNote.value.trim(),
+    returnDate: returnDate.value,
+    items: cloneData(items),
+    totalAmount: Number(totalAmount.value || 0),
+    paidAmount: nextPaid,
+    paymentHistory,
+    depositAmount: Number(depositAmount.value || 0),
+    remainingDebt: Number(remainingDebt.value || 0),
+    isClosed: editInvoiceId ? (existingInvoice?.isClosed || false) : false,
+    updatedAt: new Date().toISOString(),
+    createdAt: editInvoiceId ? (existingInvoice?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+    extensionHistory: existingInvoice?.extensionHistory || [],
+    returnHistory: existingInvoice?.returnHistory || []
+  };
+}
+
+function saveInvoice() {
+  if (!validateInvoice()) return;
+  const invoice = buildInvoicePayload();
+  const duplicate = invoices.find(item => item.invoiceNo.trim().toLowerCase() === invoice.invoiceNo.toLowerCase() && String(item.id) !== String(invoice.id));
+  if (duplicate) return alert('Bu nömrəli qaimə artıq mövcuddur.');
+
+  if (editInvoiceId) {
+    const index = invoices.findIndex(item => String(item.id) === String(editInvoiceId));
+    if (index === -1) return alert('Edit ediləcək qaimə tapılmadı.');
+    invoices[index] = invoice;
+    setStorageData(STORAGE_KEYS.invoices, invoices);
+    syncInvoiceCustomerHistory(invoice);
+    alert('Qaimə yeniləndi.');
+  } else {
+    invoices.unshift(invoice);
+    setStorageData(STORAGE_KEYS.invoices, invoices);
+    syncInvoiceCustomerHistory(invoice);
+    alert('Qaimə yadda saxlanıldı.');
+  }
+
+  window.location.href = 'dashboard.html';
+}
+
+function loadInvoiceForEdit() {
+  if (!editInvoiceId) return;
+  const invoice = invoices.find(item => String(item.id) === String(editInvoiceId));
+  if (!invoice) return;
+
+  pageHeading.textContent = 'Qaiməni edit et';
+  pageSubHeading.textContent = `${invoice.invoiceNo} nömrəli qaimə`;
+  invoiceDate.value = invoice.invoiceDate || '';
+  invoiceNo.value = invoice.invoiceNo || '';
+  selectedCustomerId = invoice.customerId || '';
+  selectedCustomerName.value = invoice.customer || '';
+  customerPhone.value = invoice.phone || '';
+  customerAddress.value = invoice.address || '';
+  invoiceNote.value = invoice.note || '';
+  returnDate.value = invoice.returnDate || '';
+  paidAmount.value = Number(invoice.paidAmount || 0);
+  depositAmount.value = Number(invoice.depositAmount || 0);
+  items = cloneData(invoice.items || []);
+  renderItems();
+}
+
+openCustomerPickerBtn.addEventListener('click', openCustomerPicker);
+closeCustomerPickerBtn.addEventListener('click', closeCustomerPicker);
+customerSearchInput.addEventListener('input', filterCustomers);
+openAddCustomerBtn.addEventListener('click', openAddCustomer);
+closeAddCustomerBtn.addEventListener('click', closeAddCustomer);
+saveCustomerBtn.addEventListener('click', saveCustomer);
+customerPickerModal.addEventListener('click', e => { if (e.target === customerPickerModal) closeCustomerPicker(); });
+addCustomerModal.addEventListener('click', e => { if (e.target === addCustomerModal) closeAddCustomer(); });
+invoiceDate.addEventListener('change', syncReturnDateToNextMonth);
+itemCategory.addEventListener('change', refreshCategoryUI);
+itemVariant.addEventListener('change', refreshCategoryUI);
+demirDirekCategorySelect?.addEventListener('change', updateDemirDirekPriceFromCategory);
+taxtaLength.addEventListener('input', recalcTaxtaPrice);
+taxtaRate.addEventListener('input', recalcTaxtaPrice);
+taxtaQuantity.addEventListener('input', recalcTaxtaPrice);
+sheetSideA.addEventListener('input', recalcSheetPrice);
+sheetSideB.addEventListener('input', recalcSheetPrice);
+sheetRate.addEventListener('input', recalcSheetPrice);
+sheetQuantity.addEventListener('input', recalcSheetPrice);
+paidAmount.addEventListener('input', recalcTotals);
+depositAmount.addEventListener('input', recalcTotals);
+
+addItemBtn.addEventListener('click', () => {
+  const category = itemCategory.value;
+  if (!category) return alert('Kateqoriya seç.');
+  if (category === 'Lesa') return addLesaItem(), resetInputs();
+  if (category === 'Təkərli lesa') return addTekerliLesaItem(), resetInputs();
+  if (category === 'Taxta') return addTaxtaItem(), resetInputs();
+  if (category === 'Dəmir dirək') return addDemirDirekItem(), resetInputs();
+  if (category === 'Bir tərəfi boy dikt' || category === 'Ksok dikt') return addSheetItem(), resetInputs();
+  if (category === 'Nəqliyyat') return addTransportItem(), resetInputs();
+  addNormalItem();
+  resetInputs();
+  refreshCategoryUI();
+});
+
+saveInvoiceBtnTop.addEventListener('click', saveInvoice);
+
+seedInitialData();
+renderCategorySelect();
+setTodayDefaults();
+hideAllItemBlocks();
+renderItems();
+renderCustomerList(customers);
+loadInvoiceForEdit();
+
+
+/* ===== v7 component-based rental overrides ===== */
+function buildLesaComponents(data) {
+  return [
+    { key:'head', label:'Başlıq', quantity:Number(data.lesaHeadCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:Number(data.lesaHeadPrice||0) },
+    { key:'longRod', label:'Uzun çubuq', quantity:Number(data.lesaLongRodCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
+    { key:'shortRod', label:'Balaca çubuq', quantity:Number(data.lesaShortRodCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
+    { key:'freeBoard', label:'Taxta 5/15 3.00', quantity:Number(data.lesaFreeTaxtaCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:Number(data.lesaExtraTaxtaPrice||3) },
+    { key:'extraBoard', label:'Əlavə taxta 5/15 3.00', quantity:Number(data.lesaExtraTaxtaCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:Number(data.lesaExtraTaxtaPrice||3) }
+  ].filter(x=>x.quantity>0);
+}
+
+function buildTekerliComponents() {
+  return [
+    { key:'head', label:'Başlıq', quantity:Number(tekerliHeadCount.value||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
+    { key:'rod', label:'Çubuq', quantity:Number(tekerliRodCount.value||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
+    { key:'vilka', label:'Vilka', quantity:Number(tekerliVilkaCount.value||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
+    { key:'board', label:'Təkərli lesa taxtası', quantity:Number(tekerliBoardCount.value||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
+    { key:'extraBoard', label:'Əlavə taxta', quantity:Number(tekerliExtraBoardCount.value||0), returnedQuantity:0, unit:'ədəd', unitPrice:Number(tekerliExtraBoardPrice.value||0) }
+  ].filter(x=>x.quantity>0);
+}
+
+function itemComponentSummary(item) {
+  if (!Array.isArray(item.components) || !item.components.length) return item.note || '';
+  return item.components.map(c => `${c.label}: ${Number(c.quantity||0)}`).join(', ');
+}
+
+function addLesaItem() {
+  const data = {
+    id: `item-${Date.now()}-${Math.random()}`,
+    category: 'Lesa',
+    label: 'Lesa',
+    size: 'Hissələrlə',
+    unit: 'dəst',
+    quantity: 1,
+    lesaHeadCount: Number(lesaHeadCount.value || 0),
+    lesaHeadPrice: Number(lesaHeadPrice.value || 0),
+    lesaLongRodCount: Number(lesaLongRodCount.value || 0),
+    lesaShortRodCount: Number(lesaShortRodCount.value || 0),
+    lesaFreeTaxtaCount: Number(lesaFreeTaxtaCount.value || 0),
+    lesaExtraTaxtaCount: Number(lesaExtraTaxtaCount.value || 0),
+    lesaExtraTaxtaPrice: Number(lesaExtraTaxtaPrice.value || 0),
+    isReturnable: true,
+    isRecurring: true
+  };
+  if (data.lesaHeadCount <= 0) return alert('Başlıq sayını yaz.');
+  data.components = buildLesaComponents(data);
+  data.subtotal = calculateLesaSubtotal(data);
+  data.customPrice = data.subtotal;
+  data.note = itemComponentSummary(data);
+  items.push(data);
+  renderItems();
+}
+
+function addTekerliLesaItem() {
+  const dayCount = Number(tekerliDayCount.value || 0);
+  const dailyPrice = Number(tekerliDailyPrice.value || 0);
+  const extraBoardCount = Number(tekerliExtraBoardCount.value || 0);
+  const extraBoardPrice = Number(tekerliExtraBoardPrice.value || 0);
+  if (dayCount <= 0) return alert('Gün sayını düzgün yaz.');
+  if (!invoiceDate.value) return alert('Əvvəl tarix seç.');
+  const dueDate = addDaysToDate(invoiceDate.value, dayCount);
+  const subtotal = (dayCount * dailyPrice) + (extraBoardCount * extraBoardPrice);
+  const data = {
+    id: `item-${Date.now()}-${Math.random()}`,
+    category: 'Təkərli lesa',
+    label: 'Təkərli lesa',
+    size: 'Hissələrlə',
+    unit: 'dəst',
+    quantity: 1,
+    rentMode: 'daily',
+    dayCount,
+    dueDate,
+    dailyPrice,
+    subtotal,
+    customPrice: subtotal,
+    note: `Gün: ${dayCount}, Vaxtı: ${dueDate}`,
+    isReturnable: true,
+    isRecurring: true,
+    components: buildTekerliComponents()
+  };
+  if (!data.components.length) return alert('Ən azı 1 detal sayı yaz.');
+  items.push(data);
+  renderItems();
+}
+
+function renderItems() {
+  if (!items.length) {
+    itemsTableBody.innerHTML = '<tr><td colspan="7" class="empty-row">Hələ mal əlavə edilməyib</td></tr>';
+    recalcTotals();
+    return;
+  }
+  itemsTableBody.innerHTML = items.map((item, index) => {
+    const detail = Array.isArray(item.components) && item.components.length
+      ? `<div class="item-note">${item.components.map(c=>`${c.label}: ${c.quantity}`).join(' / ')}</div>${item.note ? `<div class="item-note">${item.note}</div>` : ''}`
+      : `${item.note ? `<div class="item-note">${item.note}</div>` : ''}`;
+    return `
+      <tr>
+        <td>${item.category}</td>
+        <td>${item.size || '-'}${detail}</td>
+        <td>${item.quantity ?? '-'}</td>
+        <td>${item.unit || '-'}</td>
+        <td>${item.customPrice != null ? formatMoney(item.customPrice) : '-'}</td>
+        <td>${formatMoney(item.subtotal)}</td>
+        <td><button type="button" class="remove-btn" onclick="removeItem(${index})">Sil</button></td>
+      </tr>
+    `;
+  }).join('');
+  recalcTotals();
+}
+
+function buildInvoicePayload() {
+  const oldInvoice = invoices.find(x => String(x.id) === String(editInvoiceId));
+  const paymentHistory = normalizePaymentHistory(oldInvoice || {});
+  const currentPaid = Number(oldInvoice ? getInvoicePaidAmountFromHistory(oldInvoice) : 0);
+  const desiredPaid = Number(paidAmount.value || 0);
+  const diff = Number((desiredPaid - currentPaid).toFixed(2));
+  if (diff > 0) {
+    paymentHistory.unshift({
+      id: `pay-${Date.now()}`,
+      date: new Date().toISOString(),
+      amount: diff,
+      note: oldInvoice ? 'Edit zamanı əlavə ödəniş' : 'İlkin ödəniş',
+      direction: 'in'
+    });
+  } else if (diff < 0) {
+    paymentHistory.unshift({
+      id: `pay-${Date.now()}`,
+      date: new Date().toISOString(),
+      amount: Math.abs(diff),
+      note: 'Edit zamanı ödəniş düzəlişi',
+      direction: 'out'
+    });
+  }
+  const normalizedItems = cloneData(items).map(item => ({
+    ...item,
+    components: Array.isArray(item.components) ? item.components.map(c => ({ ...c, returnedQuantity: Number(c.returnedQuantity || 0) })) : undefined
+  }));
+  return {
+    id: editInvoiceId || `inv-${Date.now()}`,
+    invoiceDate: invoiceDate.value,
+    invoiceNo: invoiceNo.value.trim(),
+    customerId: selectedCustomerId || (customers.find(c => (c.name || '').trim().toLowerCase() === selectedCustomerName.value.trim().toLowerCase() && (c.phone || '').trim() === customerPhone.value.trim())?.id || ''),
+    customer: selectedCustomerName.value.trim(),
+    phone: customerPhone.value.trim(),
+    address: customerAddress.value.trim(),
+    note: invoiceNote.value.trim(),
+    returnDate: returnDate.value,
+    items: normalizedItems,
+    totalAmount: Number(totalAmount.value || 0),
+    paidAmount: Number(desiredPaid.toFixed(2)),
+    depositAmount: Number(depositAmount.value || 0),
+    remainingDebt: Number(remainingDebt.value || 0),
+    isClosed: oldInvoice?.isClosed || false,
+    closedAt: oldInvoice?.closedAt || '',
+    updatedAt: new Date().toISOString(),
+    createdAt: oldInvoice?.createdAt || new Date().toISOString(),
+    extensionHistory: oldInvoice?.extensionHistory || [],
+    returnHistory: oldInvoice?.returnHistory || [],
+    paymentHistory,
+    depositReturnedHistory: oldInvoice?.depositReturnedHistory || [],
+    closingHistory: oldInvoice?.closingHistory || []
+  };
+}
+
+function loadInvoiceForEdit() {
+  if (!editInvoiceId) return;
+  const invoice = invoices.find(item => String(item.id) === String(editInvoiceId));
+  if (!invoice) return;
+  pageHeading.textContent = 'Qaiməni edit et';
+  pageSubHeading.textContent = `${invoice.invoiceNo} nömrəli qaimə`;
+  invoiceDate.value = invoice.invoiceDate || '';
+  invoiceNo.value = invoice.invoiceNo || '';
+  selectedCustomerId = invoice.customerId || '';
+  selectedCustomerName.value = invoice.customer || '';
+  customerPhone.value = invoice.phone || '';
+  customerAddress.value = invoice.address || '';
+  invoiceNote.value = invoice.note || '';
+  returnDate.value = invoice.returnDate || '';
+  paidAmount.value = Number(getInvoicePaidAmountFromHistory(invoice) || 0);
+  depositAmount.value = Number(invoice.depositAmount || 0);
+  items = cloneData(invoice.items || []);
+  renderItems();
+}

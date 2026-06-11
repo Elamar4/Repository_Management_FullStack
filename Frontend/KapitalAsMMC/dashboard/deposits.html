@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Depozitlər — Kapital A.S. MMC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/deposits.css" />
+</head>
+<body data-page="deposits" data-title="Depozitlər" data-subtitle="Yalnız saxlanılan depozitlər">
+  <div id="appLoader"><div class="loader-spinner"></div></div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="app">
+    <div data-shell-sidebar></div>
+    <main class="main">
+      <div data-shell-header></div>
+      <section class="content">
+        <div class="kpi-row" id="depKpi"></div>
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <h2>Aktiv depozitlər</h2>
+              <p>Yalnız məbləği <strong>0-dan böyük</strong> olanlar</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Müştəri</th>
+                  <th>Qaimə №</th>
+                  <th>Məbləğ</th>
+                  <th>Tarix</th>
+                  <th>Status</th>
+                  <th>Əməliyyat</th>
+                </tr>
+              </thead>
+              <tbody id="depTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/ui-enhance.js"></script>
+  <script src="js/deposits.js"></script>
+</body>
+</html>
