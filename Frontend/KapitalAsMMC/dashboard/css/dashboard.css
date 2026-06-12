@@ -1674,8 +1674,44 @@ body.role-user .action-btn[onclick*="editStandardProduct"],
 body.role-user .action-btn[onclick*="extendInvoiceOneMonth"],
 body.role-user .action-btn[onclick*="editCustomerHistoryEntry"],
 body.role-user .action-btn[onclick*="openReturnModal"],
+body.role-user .action-btn[onclick*="editInvoice"],
+body.role-user .action-btn[onclick*="editCustomerHistoryEntry"],
 body.role-user .action-btn[onclick*="'debt-add'"],
 body.role-user .action-btn[onclick*="'deposit-add'"],
 body.role-user .action-btn[onclick*="'deposit-remove'"] {
   display: none !important;
 }
+
+/* ============ Müştəri profili: aktiv / köhnə qaimə siyahıları ============ */
+.customer-invoice-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 14px 0;
+}
+@media (max-width: 760px) {
+  .customer-invoice-split { grid-template-columns: 1fr; }
+}
+.cust-inv-col {
+  background: var(--card-soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+.cust-inv-col h4 {
+  font-size: 13px;
+  margin: 0 0 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cust-inv-line {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.cust-inv-line:last-child { margin-bottom: 0; }
+.cust-inv-line .action-btn { margin-top: 8px; }

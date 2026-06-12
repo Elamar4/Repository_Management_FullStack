@@ -762,25 +762,7 @@ function getDueTekerliLesaItems() {
 
 function renderAlerts() {
   const dueItems = getDueTekerliLesaItems();
-  const overdueDebts = getOpenDebtInvoices().filter(invoice => getInvoiceStatus(invoice) === 'Gecikir');
   const cards = [];
-  if (overdueDebts.length) {
-    cards.push(`
-      <div class="alert-card">
-        <h3>Gecikən borclar var</h3>
-        <p>${overdueDebts.length} qaimə gecikib. Borclar bölməsindən detallara baxa bilərsən.</p>
-        <div class="alert-list">
-          ${overdueDebts.slice(0, 5).map(invoice => `
-            <div class="alert-item">
-              <strong>${escapeHtml(invoice.customer || '-')} — ${escapeHtml(invoice.invoiceNo || '-')}</strong>
-              <div>Qaytarma: ${formatDate(invoice.returnDate)}</div>
-              <div>Borc: ${formatMoney(invoice.remainingDebt)}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `);
-  }
   if (dueItems.length) {
     cards.push(`
       <div class="alert-card">
@@ -806,17 +788,31 @@ function renderAlerts() {
 function renderStats() {
   const activeCount = invoices.filter(x => getInvoiceStatus(x) === 'Aktiv').length;
   const overdueCount = invoices.filter(x => getInvoiceStatus(x) === 'Gecikir').length;
-  const closedCount = invoices.filter(x => getInvoiceStatus(x) === 'Bağlanıb').length;
   const dueTekerliCount = getDueTekerliLesaItems().length;
-  const customerCount = customers.length;
-  const totalAmount = invoices.reduce((sum, x) => sum + Number(x.totalAmount || 0), 0);
+  const totalDebt = invoices.reduce((sum, x) => sum + Number(x.remainingDebt || 0), 0);
+  const totalDeposit = invoices.reduce((sum, x) => sum + Number(x.depositAmount || 0), 0);
+  const thisMonthKey = new Date().toISOString().slice(0, 7);
+  const monthInvoices = invoices.filter(x => (getInvoiceEffectiveDate(x) || '').slice(0, 7) === thisMonthKey);
+  const monthIncome = monthInvoices.reduce((sum, x) => sum + Number(x.paidAmount || 0), 0);
+  let topRented = '-';
+  try {
+    const usageMap = collectInventoryUsage();
+    const top = Object.keys(usageMap)
+      .map(n => ({ name: n, rented: Number(usageMap[n].rented || 0) }))
+      .filter(x => x.rented > 0)
+      .sort((a, b) => b.rented - a.rented)[0];
+    if (top) topRented = `${top.name} (${top.rented})`;
+  } catch (e) { topRented = '-'; }
 
   const stats = [
-    { title: 'Aktiv qaimələr', value: activeCount, note: 'Hazırda açıq qaimələr' },
-    { title: 'Gecikənlər', value: overdueCount, note: 'Ümumi qaimələr' },
-    { title: 'Təkərli lesa vaxtı', value: dueTekerliCount, note: 'Günlük vaxtı çatanlar' },
-    { title: 'Müştəri sayı', value: customerCount, note: 'Saxlanılmış müştərilər' },
-    { title: 'Ümumi məbləğ', value: `${totalAmount.toFixed(2)} AZN`, note: 'Bütün qaimələr üzrə' }
+    { title: 'Ümumi aktiv qaimə sayı', value: activeCount, note: 'Hazırda açıq qaimələr' },
+    { title: 'Ümumi borc', value: formatMoney(totalDebt), note: 'Bağlanmamış ümumi borc' },
+    { title: 'Ümumi depozit', value: formatMoney(totalDeposit), note: 'Saxlanılan depozit' },
+    { title: 'Bu ay əldə olunan gəlir', value: formatMoney(monthIncome), note: 'Bu ayın ödənişləri' },
+    { title: 'Bu ay verilən qaimələr', value: monthInvoices.length, note: 'Cari ay' },
+    { title: 'Vaxtı keçmiş qaimələr', value: overdueCount, note: 'Gecikən qaimələr' },
+    { title: 'Vaxtı bitmiş günlük mallar', value: dueTekerliCount, note: 'Təkərli lesa' },
+    { title: 'Ən çox icarəyə verilən mal', value: topRented, note: 'İcarədə olan say' }
   ];
 
   statsGrid.innerHTML = stats.map(stat => `<div class="stat-card"><div class="title">${stat.title}</div><div class="value">${stat.value}</div><div class="note">${stat.note}</div></div>`).join('');
@@ -918,11 +914,18 @@ function updateExtensionPreview() {
   const finalAmount = Math.max(Number(quote.total || 0) - discount, 0);
   extensionPreviewAmount.value = formatMoney(quote.total);
   if (extensionFinalAmount) extensionFinalAmount.value = formatMoney(finalAmount);
+  // Cari və yeni bitmə tarixi
+  const currentEnd = invoice.returnDate;
+  let newEnd = '-';
+  const _ne = new Date(invoice.returnDate);
+  if (!Number.isNaN(_ne.getTime())) { _ne.setDate(_ne.getDate() + (quote.days || 30)); newEnd = _ne.toISOString().slice(0, 10); }
   if (extensionQuoteBox) {
     extensionQuoteBox.innerHTML = `
       <div class="extension-summary-grid">
-        <div class="extension-summary-card"><span>Artırma</span><strong>${quote.monthsLabel}</strong></div>
-        <div class="extension-summary-card"><span>Hesablanan borc</span><strong>${formatMoney(quote.total)}</strong></div>
+        <div class="extension-summary-card"><span>Cari bitmə tarixi</span><strong>${formatDate(currentEnd)}</strong></div>
+        <div class="extension-summary-card"><span>Yeni bitmə tarixi</span><strong>${formatDate(newEnd)}</strong></div>
+        <div class="extension-summary-card"><span>Uzadılacaq müddət</span><strong>${quote.monthsLabel}</strong></div>
+        <div class="extension-summary-card"><span>Əlavə hesablanacaq məbləğ</span><strong>${formatMoney(quote.total)}</strong></div>
         <div class="extension-summary-card"><span>Endirimdən sonra</span><strong>${formatMoney(finalAmount)}</strong></div>
       </div>
       <div class="extension-item-list">
@@ -1209,6 +1212,15 @@ function renderCustomers() {
             <div class="customer-detail-card"><strong>Ümumi ödəniş</strong><div class="simple-item-sub">${formatMoney(totalPaid)}</div></div>
             <div class="customer-detail-card"><strong>Qaimə sayı</strong><div class="simple-item-sub">${customerInvoices.length} / Aktiv: ${activeInvoiceCount}</div></div>
           </div>
+          ${(() => {
+            const _active = customerInvoices.filter(inv => !inv.isClosed);
+            const _closed = customerInvoices.filter(inv => inv.isClosed);
+            const _line = inv => `<div class="cust-inv-line"><div><strong>${escapeHtml(inv.invoiceNo || '-')}</strong> <span class="badge ${getBadgeClass(getInvoiceStatus(inv))}">${getInvoiceStatus(inv)}</span></div><div class="simple-item-sub">İcarə: ${formatDate(inv.invoiceDate)} · Qaytarma: ${formatDate(inv.returnDate)}</div><div class="simple-item-sub">Ümumi: ${formatMoney(inv.totalAmount)} · Borc: ${formatMoney(inv.remainingDebt)}</div><button class="action-btn edit" onclick="editInvoice('${inv.id}')">Bax</button></div>`;
+            return `<div class="customer-invoice-split">
+              <div class="cust-inv-col"><h4>Aktiv qaimələr (${_active.length})</h4>${_active.length ? _active.map(_line).join('') : '<div class="simple-item-sub">Aktiv qaimə yoxdur</div>'}</div>
+              <div class="cust-inv-col"><h4>Köhnə qaimələr (${_closed.length})</h4>${_closed.length ? _closed.map(_line).join('') : '<div class="simple-item-sub">Köhnə qaimə yoxdur</div>'}</div>
+            </div>`;
+          })()}
           <div class="customer-actions-grid">
             <button class="action-btn return" onclick="openCustomerTransactionModal('${item.id}','deposit-add')">Depozit əlavə et</button>
             <button class="action-btn edit" onclick="openCustomerTransactionModal('${item.id}','deposit-remove')">Depozit çıx</button>
@@ -1255,6 +1267,7 @@ function renderCustomers() {
 
 const DEFAULT_STANDARD_PRODUCTS = [
   { id:'lesa', category:'Lesa', info:'Başlıq, uzun çubuq, balaca çubuq, taxta 5/15, əlavə taxta 5/15', price:5, unit:'başlıq', note:'' },
+  { id:'lesa-60', category:'60-lıq Lesa', info:'Adi lesa kimi işləyir — ayrıca kateqoriya (aylıq)', price:5, unit:'başlıq', note:'' },
   { id:'demir-direk', category:'Dəmir dirək', info:'Kateqoriya və ölçü ilə: 3.85 / 1.70 / 5.50 və s. Pales sayı ayrıca yazılır', price:0, unit:'ədəd', note:'' },
   { id:'boy-dikt', category:'Boy dikt', info:'Ədəd ilə', price:6, unit:'ədəd', note:'' },
   { id:'bir-terefi-boy-dikt', category:'Bir tərəfi boy dikt', info:'1.52 sabit, m² ilə', price:3, unit:'m²', note:'' },
@@ -1317,7 +1330,7 @@ function renderCatalogLists() {
     if (!list.length) return '<div class="simple-item">Məlumat yoxdur</div>';
     return list.map(item => `
       <div class="simple-item">
-        <div class="simple-item-title">${item.name}</div>
+        <div class="simple-item-title">${item.name} <span class="badge ${item.type === 'daily' ? 'violet' : 'blue'}">${item.type === 'daily' ? 'Günlük' : 'Aylıq'}</span></div>
         <div class="simple-item-sub">Qiymət: ${formatMoney(item.price)}</div>
         <div class="simple-item-sub">Vahid: ${item.unit || '-'}</div>
         <div class="simple-item-sub">Qeyd: ${item.note || '-'}</div>
@@ -1360,6 +1373,11 @@ window.openPoleCategoryModal = function(itemId = null){
   if (poleCategoryPriceInput) poleCategoryPriceInput.value = item?.price ?? 0;
   if (poleCategoryUnitInput) poleCategoryUnitInput.value = item?.unit || 'ədəd';
   if (poleCategoryNoteInput) poleCategoryNoteInput.value = item?.note || '';
+  const poleStockEl = document.getElementById('poleCategoryStockInput');
+  if (poleStockEl) {
+    const invName = item ? `Dəmir dirək ${item.name}` : '';
+    poleStockEl.value = invName && inventoryStock && inventoryStock[invName] != null ? Number(inventoryStock[invName]) : 0;
+  }
   openModal(poleCategoryModal);
 };
 function savePoleCategoryFromModal(){
@@ -1378,6 +1396,13 @@ function savePoleCategoryFromModal(){
     poleCategories.unshift({ id: `pole-${Date.now()}`, name, price, unit, note });
   }
   setStorageData(STORAGE_KEYS.poleCategories, poleCategories);
+  // Ölçü üçün anbar stoku ayrıca saxlanılır: "Dəmir dirək 3.85"
+  const poleStockEl = document.getElementById('poleCategoryStockInput');
+  if (poleStockEl) {
+    const invName = `Dəmir dirək ${name}`;
+    inventoryStock = { ...(inventoryStock || {}), [invName]: Number(poleStockEl.value || 0) };
+    setStorageData(STORAGE_KEYS.inventory, inventoryStock);
+  }
   closeModal(poleCategoryModal);
   editingPoleCategoryId = null;
   renderCatalogLists();
@@ -1561,6 +1586,18 @@ function renderReports() {
   const debtors = customers.map(customer => ({ customer, ledger: getCustomerLedger(customer) })).sort((a, b) => b.ledger.debt - a.ledger.debt);
   const topDebtor = debtors[0];
   const topDeposit = [...debtors].sort((a, b) => b.ledger.deposit - a.ledger.deposit)[0];
+  let topRented = [];
+  try {
+    const usageMap = collectInventoryUsage();
+    topRented = Object.keys(usageMap)
+      .map(n => ({ name: n, rented: Number(usageMap[n].rented || 0) }))
+      .filter(x => x.rented > 0)
+      .sort((a, b) => b.rented - a.rented)
+      .slice(0, 3);
+  } catch (e) { topRented = []; }
+  const topRentedSmall = topRented.length
+    ? topRented.map(r => `${escapeHtml(r.name)}: ${r.rented}`).join(' · ')
+    : 'Məlumat yoxdur';
 
   reportsBox.innerHTML = `
     <div class="report-box"><h4>Ümumi qaimə sayı</h4><strong>${totalInvoices}</strong><small>Aktiv: ${activeInvoices} / Gecikən: ${overdueInvoices}</small></div>
@@ -1571,6 +1608,7 @@ function renderReports() {
     <div class="report-box"><h4>Bu ayın qaimələri</h4><strong>${monthInvoices.length}</strong><small>Məbləğ: ${formatMoney(monthRevenue)} / Ödəniş: ${formatMoney(monthPaid)}</small></div>
     <div class="report-box"><h4>Ən çox borcu olan müştəri</h4><strong>${escapeHtml(topDebtor?.customer?.name || '-')}</strong><small>${topDebtor ? `Borc: ${formatMoney(topDebtor.ledger.debt)}` : 'Məlumat yoxdur'}</small></div>
     <div class="report-box"><h4>Ən çox depoziti olan müştəri</h4><strong>${escapeHtml(topDeposit?.customer?.name || '-')}</strong><small>${topDeposit ? `Depozit: ${formatMoney(topDeposit.ledger.deposit)}` : 'Məlumat yoxdur'}</small></div>
+    <div class="report-box"><h4>Ən çox icarəyə verilən mallar</h4><strong>${topRented[0] ? escapeHtml(topRented[0].name) : '-'}</strong><small>${topRentedSmall}</small></div>
   `;
 }
 
@@ -1609,12 +1647,16 @@ window.openCustomerModal = function(customerId = null) {
     customerPhoneInput.value = customer.phone || '';
     customerExtraPhoneInput.value = customer.extraPhone || '';
     customerAddressInput.value = customer.address || '';
+    const cNote = document.getElementById('customerNoteInput');
+    if (cNote) cNote.value = customer.note || '';
   } else {
     customerModalTitle.textContent = 'Müştəri əlavə et';
     customerNameInput.value = '';
     customerPhoneInput.value = '';
     customerExtraPhoneInput.value = '';
     customerAddressInput.value = '';
+    const cNote = document.getElementById('customerNoteInput');
+    if (cNote) cNote.value = '';
   }
   openModal(customerModal);
 };
@@ -1624,6 +1666,8 @@ function saveCustomerFromModal() {
   const phone = normalizePhone(customerPhoneInput.value);
   const extraPhone = normalizePhone(customerExtraPhoneInput.value);
   const address = customerAddressInput.value.trim();
+  const noteEl = document.getElementById('customerNoteInput');
+  const note = noteEl ? noteEl.value.trim() : '';
   if (!name || !phone) return alert('Ad və telefon mütləqdir.');
 
   const duplicate = customers.find(item => (item.name || '').toLowerCase() === name.toLowerCase() && String(item.id) !== String(editingCustomerId));
@@ -1632,9 +1676,9 @@ function saveCustomerFromModal() {
   if (editingCustomerId) {
     const index = customers.findIndex(item => String(item.id) === String(editingCustomerId));
     if (index === -1) return;
-    customers[index] = { ...customers[index], name, phone, extraPhone, address };
+    customers[index] = { ...customers[index], name, phone, extraPhone, address, note };
   } else {
-    customers.unshift({ id: `c-${Date.now()}`, name, phone, extraPhone, address, history: [] });
+    customers.unshift({ id: `c-${Date.now()}`, name, phone, extraPhone, address, note, history: [] });
   }
 
   setStorageData(STORAGE_KEYS.customers, customers);
@@ -1670,6 +1714,8 @@ window.openCatalogModal = function(type, itemId = null) {
   catalogPriceInput.value = item?.price ?? 0;
   catalogUnitInput.value = item?.unit || '';
   catalogNoteInput.value = item?.note || '';
+  const catalogTypeEl = document.getElementById('catalogTypeInput');
+  if (catalogTypeEl) catalogTypeEl.value = item?.type || 'monthly';
   openModal(catalogModal);
 };
 
@@ -1678,6 +1724,8 @@ function saveCatalogFromModal() {
   const price = Number(catalogPriceInput.value || 0);
   const unit = catalogUnitInput.value.trim();
   const note = catalogNoteInput.value.trim();
+  const catalogTypeEl = document.getElementById('catalogTypeInput');
+  const type = catalogTypeEl ? catalogTypeEl.value : 'monthly';
   if (!name) return alert('Ad mütləqdir.');
   if (price < 0) return alert('Qiymət mənfi ola bilməz.');
 
@@ -1689,9 +1737,9 @@ function saveCatalogFromModal() {
   if (editingCatalogId) {
     const index = list.findIndex(item => String(item.id) === String(editingCatalogId));
     if (index === -1) return;
-    list[index] = { ...list[index], name, price, unit, note };
+    list[index] = { ...list[index], name, price, unit, note, type };
   } else {
-    list.unshift({ id: `${editingCatalogType}-${Date.now()}`, name, price, unit, note });
+    list.unshift({ id: `${editingCatalogType}-${Date.now()}`, name, price, unit, note, type });
   }
 
   if (editingCatalogType === 'extra') extraCategories = list; else serviceCategories = list;
@@ -2842,6 +2890,15 @@ function renderCustomers() {
             <div class="customer-detail-card"><strong>Ümumi ödəniş</strong><div class="simple-item-sub">${formatMoney(totalPaid)}</div></div>
             <div class="customer-detail-card"><strong>Qaimə sayı</strong><div class="simple-item-sub">${customerInvoices.length} / Aktiv: ${activeInvoiceCount}</div></div>
           </div>
+          ${(() => {
+            const _active = customerInvoices.filter(inv => !inv.isClosed);
+            const _closed = customerInvoices.filter(inv => inv.isClosed);
+            const _line = inv => `<div class="cust-inv-line"><div><strong>${escapeHtml(inv.invoiceNo || '-')}</strong> <span class="badge ${getBadgeClass(getInvoiceStatus(inv))}">${getInvoiceStatus(inv)}</span></div><div class="simple-item-sub">İcarə: ${formatDate(inv.invoiceDate)} · Qaytarma: ${formatDate(inv.returnDate)}</div><div class="simple-item-sub">Ümumi: ${formatMoney(inv.totalAmount)} · Borc: ${formatMoney(inv.remainingDebt)}</div><button class="action-btn edit" onclick="editInvoice('${inv.id}')">Bax</button></div>`;
+            return `<div class="customer-invoice-split">
+              <div class="cust-inv-col"><h4>Aktiv qaimələr (${_active.length})</h4>${_active.length ? _active.map(_line).join('') : '<div class="simple-item-sub">Aktiv qaimə yoxdur</div>'}</div>
+              <div class="cust-inv-col"><h4>Köhnə qaimələr (${_closed.length})</h4>${_closed.length ? _closed.map(_line).join('') : '<div class="simple-item-sub">Köhnə qaimə yoxdur</div>'}</div>
+            </div>`;
+          })()}
           <div class="customer-actions-grid">
             <button class="action-btn return" onclick="openCustomerTransactionModal('${item.id}','deposit-add')">Depozit əlavə et</button>
             <button class="action-btn edit" onclick="openCustomerTransactionModal('${item.id}','deposit-remove')">Depozit çıx</button>

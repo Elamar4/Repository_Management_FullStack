@@ -77,11 +77,17 @@ function formatDateToInput(date) {
 }
 
 function generateInvoiceNo() {
-  const now = new Date();
-  const year = String(now.getFullYear()).slice(-2);
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const stamp = String(Date.now()).slice(-4);
-  return `QM-${year}${month}${stamp}`;
+  // Ardıcıl avtomatik nömrə: QM-2026-000126 (mövcud nömrələrin sonundakı
+  // ən böyük rəqəmdən +1). Sahə redaktə oluna bilən qalır.
+  const year = new Date().getFullYear();
+  let maxSeq = 0;
+  try {
+    (Array.isArray(invoices) ? invoices : []).forEach(function (inv) {
+      const m = String(inv.invoiceNo || '').match(/(\d+)\s*$/);
+      if (m) maxSeq = Math.max(maxSeq, parseInt(m[1], 10));
+    });
+  } catch (e) {}
+  return `QM-${year}-${String(maxSeq + 1).padStart(6, '0')}`;
 }
 
 function normalizePhone(value) {
@@ -331,6 +337,7 @@ function getCategoryOptions() {
   return [
     { value: '', label: 'Kateqoriya seç' },
     { value: 'Lesa', label: 'Lesa' },
+    { value: '60-lıq Lesa', label: '60-lıq Lesa' },
     { value: 'Təkərli lesa', label: 'Təkərli lesa' },
     { value: 'Taxta', label: 'Taxta' },
     { value: 'Dəmir dirək', label: 'Dəmir dirək' },
@@ -385,7 +392,7 @@ function refreshCategoryUI() {
   hideAllItemBlocks();
 
   if (!category) return;
-  if (category === 'Lesa') { lesaFields.classList.remove('hidden'); return; }
+  if (category === 'Lesa' || category === '60-lıq Lesa') { lesaFields.classList.remove('hidden'); return; }
   if (category === 'Təkərli lesa') { tekerliLesaFields.classList.remove('hidden'); return; }
   if (category === 'Taxta') { taxtaRate.value = formatMoney(getStandardPrice('Taxta', TAKHTA_METER_RATE)); taxtaFields.classList.remove('hidden'); recalcTaxtaPrice(); return; }
   if (category === 'Dəmir dirək') { fillDemirDirekCategorySelect(); demirDirekFields.classList.remove('hidden'); return; }
@@ -435,8 +442,9 @@ function recalcSheetPrice() {
 }
 
 function calculateLesaSubtotal(data) {
+  // Qiymət = Başlıq + Əlavə taxta. Adi taxta (lesaFreeTaxta) PULSUZDUR.
   const boardPrice = Number(data.lesaExtraTaxtaPrice || 3);
-  return (Number(data.lesaHeadCount || 0) * Number(data.lesaHeadPrice || 0)) + (Number(data.lesaFreeTaxtaCount || 0) * boardPrice) + (Number(data.lesaExtraTaxtaCount || 0) * boardPrice);
+  return (Number(data.lesaHeadCount || 0) * Number(data.lesaHeadPrice || 0)) + (Number(data.lesaExtraTaxtaCount || 0) * boardPrice);
 }
 
 function calculateTekerliLesaSubtotal(data) {
@@ -910,6 +918,17 @@ function saveInvoice() {
   const duplicate = invoices.find(item => item.invoiceNo.trim().toLowerCase() === invoice.invoiceNo.toLowerCase() && String(item.id) !== String(invoice.id));
   if (duplicate) return alert('Bu nömrəli qaimə artıq mövcuddur.');
 
+  // Anbar qalığı yoxlaması — BLOKLAMIR, yalnız xəbərdarlıq edir (hər mal ayrıca)
+  let shortages = [];
+  try { shortages = computeStockShortages(invoice); } catch (e) { shortages = []; }
+  if (shortages.length) {
+    showStockShortageModal(shortages, function () { commitInvoice(invoice); });
+    return;
+  }
+  commitInvoice(invoice);
+}
+
+function commitInvoice(invoice) {
   if (editInvoiceId) {
     const index = invoices.findIndex(item => String(item.id) === String(editInvoiceId));
     if (index === -1) return alert('Edit ediləcək qaimə tapılmadı.');
@@ -923,8 +942,99 @@ function saveInvoice() {
     syncInvoiceCustomerHistory(invoice);
     alert('Qaimə yadda saxlanıldı.');
   }
-
   window.location.href = 'dashboard.html';
+}
+
+/* ===== Anbar qalığı yoxlaması (bloklamayan xəbərdarlıq) ===== */
+function _invUsageMap(list) {
+  const usage = {};
+  const add = (name, qty, returned) => {
+    const n = (name || '-').trim().replace(/\s+/g, ' ');
+    const out = Math.max(Number(qty || 0) - Number(returned || 0), 0);
+    if (!n || n === '-' || out <= 0) return;
+    usage[n] = (usage[n] || 0) + out;
+  };
+  (list || []).forEach(invoice => {
+    if (invoice.isClosed) return;
+    (invoice.items || []).forEach(item => {
+      if (item.components && Array.isArray(item.components)) {
+        item.components.forEach(comp => {
+          const compName = comp.name || comp.label || comp.key || '';
+          const nm = item.category === 'Dəmir dirək' && (comp.key === 'direk' || /Dəmir dirək/i.test(compName))
+            ? `Dəmir dirək ${item.size || item.poleType || compName.replace(/Dəmir dirək/i, '').trim()}`.trim()
+            : compName;
+          add(nm, comp.quantity || comp.qty || 0, comp.returnedQuantity || 0);
+        });
+        return;
+      }
+      if (item.category === 'Lesa') {
+        add('Lesa başlıq', item.lesaHeadCount || 0, item.returnedHeadCount || 0);
+        add('Lesa uzun çubuq', item.lesaLongRodCount || 0, item.returnedLongRodCount || 0);
+        add('Lesa balaca çubuq', item.lesaShortRodCount || 0, item.returnedShortRodCount || 0);
+        add('Lesa taxta 5/15 3.00', item.lesaFreeTaxtaCount || 0, item.returnedFreeTaxtaCount || 0);
+        add('Lesa əlavə taxta 5/15 3.00', item.lesaExtraTaxtaCount || 0, item.returnedExtraTaxtaCount || 0);
+        return;
+      }
+      if (item.category === 'Təkərli lesa') {
+        add('Təkərli lesa başlıq', item.headCount || item.tekerliHeadCount || 0, item.returnedHeadCount || 0);
+        add('Təkərli lesa çubuq', item.rodCount || item.tekerliRodCount || 0, item.returnedRodCount || 0);
+        add('Təkərli lesa vilka', item.vilkaCount || 0, item.returnedVilkaCount || 0);
+        add('Təkərli lesa taxta', item.boardCount || 0, item.returnedBoardCount || 0);
+        add('Təkərli lesa əlavə taxta', item.extraBoardCount || 0, item.returnedExtraBoardCount || 0);
+        return;
+      }
+      if (item.category === 'Dəmir dirək') {
+        add(`Dəmir dirək ${item.size || item.poleSize || item.poleType || ''}`.trim(), item.quantity || 0, item.returnedQuantity || 0);
+        if (Number(item.palesCount || 0) > 0) add('Pales', item.palesCount || 0, item.returnedPalesCount || 0);
+        return;
+      }
+      if (item.isReturnable !== false && item.category && item.category !== 'Xidmət' && item.category !== 'Nəqliyyat') {
+        add(item.label || item.category, item.quantity || 0, item.returnedQuantity || 0);
+      }
+    });
+  });
+  return usage;
+}
+
+function computeStockShortages(newInvoice) {
+  let stock = {};
+  try { stock = JSON.parse(localStorage.getItem('lesa_inventory_v1')) || {}; } catch (e) { stock = {}; }
+  // Yalnız anbarda izlənən mallar yoxlanılır (izlənməyən mal üçün yanlış xəbərdarlıq olmasın)
+  const others = (invoices || []).filter(inv =>
+    String(inv.id) !== String(newInvoice.id) && String(inv.id) !== String(editInvoiceId || ''));
+  const otherUsage = _invUsageMap(others);
+  const newUsage = _invUsageMap([newInvoice]);
+  const shortages = [];
+  Object.keys(newUsage).forEach(name => {
+    if (!Object.prototype.hasOwnProperty.call(stock, name)) return;
+    const available = Number(stock[name] || 0) - Number(otherUsage[name] || 0);
+    const need = Number(newUsage[name] || 0);
+    if (need > available) shortages.push({ name: name, need: need, available: available });
+  });
+  return shortages;
+}
+
+function showStockShortageModal(shortages, onYes) {
+  if (document.getElementById('stockWarnOverlay')) return;
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rows = shortages.map(s =>
+    `<li><strong>${esc(s.name)}</strong> — lazım: ${s.need}, anbarda: ${s.available}</li>`).join('');
+  const overlay = document.createElement('div');
+  overlay.id = 'stockWarnOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:18px;';
+  overlay.innerHTML =
+    '<div style="background:#fff;border-radius:14px;max-width:460px;width:100%;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:inherit;">' +
+    '<h3 style="margin:0 0 10px;color:#b45309;font-size:18px;">⚠️ Anbarda kifayət qədər mal yoxdur</h3>' +
+    '<ul style="margin:0 0 14px;padding-left:18px;color:#334155;font-size:14px;line-height:1.6;">' + rows + '</ul>' +
+    '<p style="margin:0 0 18px;color:#64748b;font-size:13px;">Yenə də davam etmək istəyirsiniz? Qalıq mənfi ola bilər.</p>' +
+    '<div style="display:flex;justify-content:flex-end;gap:10px;">' +
+    '<button id="stockWarnNo" style="padding:9px 16px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-weight:600;">Xeyr</button>' +
+    '<button id="stockWarnYes" style="padding:9px 16px;border-radius:8px;border:0;background:#dc2626;color:#fff;cursor:pointer;font-weight:700;">Bəli, davam et</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('stockWarnNo').onclick = () => overlay.remove();
+  document.getElementById('stockWarnYes').onclick = () => { overlay.remove(); if (typeof onYes === 'function') onYes(); };
 }
 
 function loadInvoiceForEdit() {
@@ -973,7 +1083,8 @@ depositAmount.addEventListener('input', recalcTotals);
 addItemBtn.addEventListener('click', () => {
   const category = itemCategory.value;
   if (!category) return alert('Kateqoriya seç.');
-  if (category === 'Lesa') return addLesaItem(), resetInputs();
+  if (category === 'Lesa') return addLesaItem('Lesa'), resetInputs();
+  if (category === '60-lıq Lesa') return addLesaItem('60-lıq Lesa'), resetInputs();
   if (category === 'Təkərli lesa') return addTekerliLesaItem(), resetInputs();
   if (category === 'Taxta') return addTaxtaItem(), resetInputs();
   if (category === 'Dəmir dirək') return addDemirDirekItem(), resetInputs();
@@ -1001,7 +1112,7 @@ function buildLesaComponents(data) {
     { key:'head', label:'Başlıq', quantity:Number(data.lesaHeadCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:Number(data.lesaHeadPrice||0) },
     { key:'longRod', label:'Uzun çubuq', quantity:Number(data.lesaLongRodCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
     { key:'shortRod', label:'Balaca çubuq', quantity:Number(data.lesaShortRodCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
-    { key:'freeBoard', label:'Taxta 5/15 3.00', quantity:Number(data.lesaFreeTaxtaCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:Number(data.lesaExtraTaxtaPrice||3) },
+    { key:'freeBoard', label:'Taxta 5/15 3.00 (pulsuz)', quantity:Number(data.lesaFreeTaxtaCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:0 },
     { key:'extraBoard', label:'Əlavə taxta 5/15 3.00', quantity:Number(data.lesaExtraTaxtaCount||0), returnedQuantity:0, unit:'ədəd', unitPrice:Number(data.lesaExtraTaxtaPrice||3) }
   ].filter(x=>x.quantity>0);
 }
@@ -1021,11 +1132,11 @@ function itemComponentSummary(item) {
   return item.components.map(c => `${c.label}: ${Number(c.quantity||0)}`).join(', ');
 }
 
-function addLesaItem() {
+function addLesaItem(categoryLabel = 'Lesa') {
   const data = {
     id: `item-${Date.now()}-${Math.random()}`,
-    category: 'Lesa',
-    label: 'Lesa',
+    category: categoryLabel,
+    label: categoryLabel,
     size: 'Hissələrlə',
     unit: 'dəst',
     quantity: 1,

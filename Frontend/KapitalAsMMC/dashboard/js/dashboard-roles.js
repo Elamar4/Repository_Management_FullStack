@@ -49,6 +49,7 @@
     { sel: "#addInventoryItemBtn", perm: "create" },
     { sel: "#exportBackupBtn", perm: "create" },
     { sel: "#importBackupBtn", perm: "create" },
+    { sel: "#addUserBtn", perm: "manageUsers" },
   ];
 
   function applyPermissions() {
@@ -106,9 +107,24 @@
         "<td>" + esc(DB.roleLabel(u.role)) + "</td>" +
         "<td>" + esc(u.phone || "-") + "</td>" +
         "<td>" + status + "</td>" +
+        '<td><div class="action-cell"><button class="action-btn delete" data-del-user="' + u.id + '">Sil</button></div></td>' +
         "</tr>"
       );
     }).join("");
+
+    tbody.querySelectorAll("[data-del-user]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-del-user");
+        var u = DB.getUser ? DB.getUser(id) : null;
+        if (!confirm((u ? u.name : "İşçi") + " silinsin?")) return;
+        var res = DB.deleteUser(id);
+        if (!res || !res.ok) {
+          alert(res && res.reason === "self" ? "Öz hesabınızı silə bilməzsiniz." : "Silinmədi.");
+          return;
+        }
+        renderUsers();
+      });
+    });
 
     var grid = document.getElementById("usersSummaryGrid");
     if (grid) {
@@ -128,9 +144,60 @@
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
+  // Yeni işçi əlavə et modalı (yalnız Admin)
+  function showUserModal() {
+    if (!DB.can("manageUsers")) return;
+    if (document.getElementById("userModalOverlay")) return;
+    var overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.id = "userModalOverlay";
+    overlay.innerHTML =
+      '<div class="modal-card small-modal">' +
+      '  <div class="modal-head"><h3>Yeni işçi</h3>' +
+      '    <button type="button" class="secondary-btn" id="nuClose">Bağla</button></div>' +
+      '  <div class="form-grid-2">' +
+      '    <div class="form-group full"><label>Ad Soyad</label><input type="text" id="nuName" /></div>' +
+      '    <div class="form-group"><label>İstifadəçi adı</label><input type="text" id="nuUsername" /></div>' +
+      '    <div class="form-group"><label>Şifrə</label><input type="text" id="nuPassword" /></div>' +
+      '    <div class="form-group"><label>Rol</label><select id="nuRole">' +
+      '      <option value="admin">Admin</option><option value="manager">Menecer</option>' +
+      '      <option value="user" selected>İşçi</option></select></div>' +
+      '    <div class="form-group"><label>Telefon</label><input type="text" id="nuPhone" /></div>' +
+      '    <div class="form-group full"><label><input type="checkbox" id="nuActive" checked /> Aktiv</label></div>' +
+      '  </div>' +
+      '  <div class="modal-actions"><button type="button" class="primary-btn" id="nuSave">Yadda saxla</button></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
+    document.getElementById("nuClose").onclick = close;
+    document.getElementById("nuSave").onclick = function () {
+      var res = DB.addUser({
+        name: document.getElementById("nuName").value,
+        username: document.getElementById("nuUsername").value,
+        password: document.getElementById("nuPassword").value,
+        role: document.getElementById("nuRole").value,
+        phone: document.getElementById("nuPhone").value,
+        active: document.getElementById("nuActive").checked,
+      });
+      if (!res || !res.ok) {
+        alert(res && res.reason === "duplicate"
+          ? "Bu istifadəçi adı artıq mövcuddur."
+          : "Ad, istifadəçi adı və şifrə mütləqdir.");
+        return;
+      }
+      close();
+      renderUsers();
+    };
+    var nameEl = document.getElementById("nuName");
+    if (nameEl) nameEl.focus();
+  }
+
   function init() {
     buildUserChip();
     renderUsers();
+    var addUserBtn = document.getElementById("addUserBtn");
+    if (addUserBtn) addUserBtn.addEventListener("click", showUserModal);
     applyPermissions();
     applyMenuVisibility();
     // Bölmə dəyişdikdə statik düymələr yenidən görünə bilər — yenidən tətbiq

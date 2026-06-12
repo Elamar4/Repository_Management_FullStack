@@ -326,6 +326,9 @@
                 <h2>İşçilər</h2>
                 <p>Sistem işçiləri və rolları (yalnız Admin)</p>
               </div>
+              <div class="toolbar-row">
+                <button id="addUserBtn" class="primary-btn" type="button">+ İşçi əlavə et</button>
+              </div>
             </div>
             <div id="usersSummaryGrid" class="report-grid debt-summary-grid"></div>
             <div class="table-wrap">
@@ -337,6 +340,7 @@
                     <th>Rol</th>
                     <th>Telefon</th>
                     <th>Status</th>
+                    <th>Əməliyyatlar</th>
                   </tr>
                 </thead>
                 <tbody id="usersTableBody"></tbody>
@@ -371,6 +375,10 @@
           <label for="customerAddressInput">Ünvan</label>
           <input type="text" id="customerAddressInput" />
         </div>
+        <div class="form-group full">
+          <label for="customerNoteInput">Qeyd</label>
+          <input type="text" id="customerNoteInput" />
+        </div>
       </div>
       <div class="modal-actions">
         <button type="button" id="saveCustomerModalBtn" class="primary-btn">Yadda saxla</button>
@@ -396,6 +404,13 @@
         <div class="form-group">
           <label for="catalogUnitInput">Vahid</label>
           <input type="text" id="catalogUnitInput" placeholder="ədəd, xidmət, səfər" />
+        </div>
+        <div class="form-group">
+          <label for="catalogTypeInput">İcarə tipi</label>
+          <select id="catalogTypeInput">
+            <option value="monthly">Aylıq</option>
+            <option value="daily">Günlük</option>
+          </select>
         </div>
         <div class="form-group full">
           <label for="catalogNoteInput">Qeyd</label>
@@ -426,6 +441,10 @@
         <div class="form-group">
           <label for="poleCategoryUnitInput">Vahid</label>
           <input type="text" id="poleCategoryUnitInput" value="ədəd" />
+        </div>
+        <div class="form-group">
+          <label for="poleCategoryStockInput">Anbar stoku</label>
+          <input type="number" id="poleCategoryStockInput" min="0" step="1" value="0" />
         </div>
         <div class="form-group full">
           <label for="poleCategoryNoteInput">Qeyd</label>
