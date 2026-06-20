@@ -1658,6 +1658,11 @@ td[colspan] {
   background: var(--card-soft); border: 1px solid var(--line);
   padding: 6px 12px; border-radius: 999px; white-space: nowrap;
 }
+.branch-chip {
+  background: var(--primary-soft);
+  border-color: var(--primary-soft);
+  color: var(--primary-dark);
+}
 
 /* İcazə ilə gizlədilən statik elementlər */
 .perm-hidden { display: none !important; }
@@ -1715,3 +1720,23 @@ body.role-user .action-btn[onclick*="'deposit-remove'"] {
 }
 .cust-inv-line:last-child { margin-bottom: 0; }
 .cust-inv-line .action-btn { margin-top: 8px; }
+
+/* ============ Qaimə sətir rəngləri (təcillilik + sıralama ilə) ============ */
+.inv-row-red td { background: #fef2f2; }
+.inv-row-green td { background: #f0fdf4; }
+.inv-row-yellow td { background: #fefce8; }
+.inv-row-gray td { background: #f8fafc; }
+.inv-row-red td:first-child { box-shadow: inset 4px 0 0 #dc2626; }
+.inv-row-green td:first-child { box-shadow: inset 4px 0 0 #16a34a; }
+.inv-row-yellow td:first-child { box-shadow: inset 4px 0 0 #ca8a04; }
+.inv-row-gray td:first-child { box-shadow: inset 4px 0 0 #cbd5e1; }
+
+/* Anbar: qaiməyə keçid linki + açılan holders */
+.inv-invoice-link {
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.inv-invoice-link:hover { color: var(--primary-dark); }
+.inventory-holders-detail { margin-top: 8px; }

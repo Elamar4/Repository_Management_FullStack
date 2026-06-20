@@ -82,6 +82,15 @@
   function buildUserChip() {
     var right = document.querySelector(".header-right");
     if (!right || document.getElementById("currentUserChip")) return;
+    // Aktiv filial nişanı
+    if (DB.getCurrentBranchName) {
+      var branchChip = document.createElement("span");
+      branchChip.className = "current-user branch-chip";
+      branchChip.id = "currentBranchChip";
+      branchChip.title = "Aktiv filial";
+      branchChip.textContent = "\u{1F3E2} " + DB.getCurrentBranchName();
+      right.insertBefore(branchChip, right.firstChild);
+    }
     var chip = document.createElement("span");
     chip.className = "current-user";
     chip.id = "currentUserChip";
@@ -105,6 +114,7 @@
         "<td><strong>" + esc(u.name) + "</strong></td>" +
         "<td>" + esc(u.username) + "</td>" +
         "<td>" + esc(DB.roleLabel(u.role)) + "</td>" +
+        "<td>" + esc(DB.branchLabel ? DB.branchLabel(u.branch) : (u.branch || "-")) + "</td>" +
         "<td>" + esc(u.phone || "-") + "</td>" +
         "<td>" + status + "</td>" +
         '<td><div class="action-cell"><button class="action-btn delete" data-del-user="' + u.id + '">Sil</button></div></td>' +
@@ -162,6 +172,9 @@
       '    <div class="form-group"><label>Rol</label><select id="nuRole">' +
       '      <option value="admin">Admin</option><option value="manager">Menecer</option>' +
       '      <option value="user" selected>İşçi</option></select></div>' +
+      '    <div class="form-group"><label>Filial</label><select id="nuBranch">' +
+      (DB.getBranches ? DB.getBranches().map(function (b) { return '<option value="' + b.id + '">' + esc(b.name) + '</option>'; }).join("") : "") +
+      '    </select></div>' +
       '    <div class="form-group"><label>Telefon</label><input type="text" id="nuPhone" /></div>' +
       '    <div class="form-group full"><label><input type="checkbox" id="nuActive" checked /> Aktiv</label></div>' +
       '  </div>' +
@@ -172,11 +185,13 @@
     overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
     document.getElementById("nuClose").onclick = close;
     document.getElementById("nuSave").onclick = function () {
+      var branchEl = document.getElementById("nuBranch");
       var res = DB.addUser({
         name: document.getElementById("nuName").value,
         username: document.getElementById("nuUsername").value,
         password: document.getElementById("nuPassword").value,
         role: document.getElementById("nuRole").value,
+        branch: branchEl ? branchEl.value : undefined,
         phone: document.getElementById("nuPhone").value,
         active: document.getElementById("nuActive").checked,
       });

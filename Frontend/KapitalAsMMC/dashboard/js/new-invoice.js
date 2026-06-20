@@ -13,9 +13,15 @@ const KSOK_DICT_RATE = 3;
 const TAKHTA_METER_RATE = 0.6;
 const ONE_SIDE_BOY_DICT_FIXED_SIDE = 1.52;
 
+// Aktiv filial — biznes datası filiala görə ayrılır (açar + __filialId)
+function getActiveBranch() {
+  try { return sessionStorage.getItem('kapital_branch') || 'merdekan'; } catch (e) { return 'merdekan'; }
+}
+function branchKey(key) { return key + '__' + getActiveBranch(); }
+
 function getStorageData(key, fallback) {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = sessionStorage.getItem(branchKey(key));
     return raw ? JSON.parse(raw) : fallback;
   } catch (error) {
     console.error('Storage read error', key, error);
@@ -24,7 +30,7 @@ function getStorageData(key, fallback) {
 }
 
 function setStorageData(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  sessionStorage.setItem(branchKey(key), JSON.stringify(value));
 }
 
 const LEGACY_KEYS = {
@@ -209,6 +215,7 @@ const invoiceDate = document.getElementById('invoiceDate');
 const invoiceNo = document.getElementById('invoiceNo');
 const selectedCustomerName = document.getElementById('selectedCustomerName');
 const customerPhone = document.getElementById('customerPhone');
+const customerExtraPhone = document.getElementById('customerExtraPhone');
 const customerAddress = document.getElementById('customerAddress');
 const invoiceNote = document.getElementById('invoiceNote');
 const returnDate = document.getElementById('returnDate');
@@ -387,9 +394,15 @@ function setupSheetFieldsByCategory(category) {
   }
 }
 
+function setQuantityLabel(text) {
+  var lbl = document.querySelector('label[for="itemQuantity"]');
+  if (lbl) lbl.textContent = text;
+}
+
 function refreshCategoryUI() {
   const category = itemCategory.value;
   hideAllItemBlocks();
+  setQuantityLabel('Miqdar');
 
   if (!category) return;
   if (category === 'Lesa' || category === '60-lıq Lesa') { lesaFields.classList.remove('hidden'); return; }
@@ -412,6 +425,8 @@ function refreshCategoryUI() {
     const current = extraCategories.find(x => x.id === itemVariant.value) || extraCategories[0];
     itemPrice.value = current ? formatMoney(current.price) : '0.00';
     itemNote.value = current?.note || '';
+    // Günlük tipli əlavə kateqoriyada "Miqdar" = gün sayı
+    setQuantityLabel(current && current.type === 'daily' ? 'Gün sayı' : 'Miqdar');
     return;
   }
 
@@ -472,6 +487,7 @@ function selectCustomer(customer) {
   selectedCustomerId = customer.id || '';
   selectedCustomerName.value = customer.name || '';
   customerPhone.value = customer.phone || '';
+  if (customerExtraPhone) customerExtraPhone.value = customer.extraPhone || '';
   customerAddress.value = customer.address || '';
   closeCustomerPicker();
 }
@@ -576,6 +592,8 @@ function addNormalItem() {
   let variantId = '';
   let fixedFee = false;
   let note = itemNote.value.trim();
+  let isDaily = false;
+  let dueDate = '';
 
   if (category === 'Boy dikt') {
     label = 'Boy dikt';
@@ -588,6 +606,14 @@ function addNormalItem() {
     unit = selected.unit || 'ədəd';
     variantId = selected.id;
     if (!note) note = selected.note || '';
+    // Günlük tipli əlavə kateqoriya → Təkərli lesa kimi bitmə tarixi + bildiriş
+    if (selected.type === 'daily') {
+      if (!invoiceDate.value) return alert('Günlük mal üçün əvvəl tarix seç.');
+      isDaily = true;
+      dueDate = addDaysToDate(invoiceDate.value, quantity); // Miqdar = gün sayı
+      unit = 'gün';
+      note = `${note ? note + ' / ' : ''}Günlük mal — ${quantity} gün, vaxtı: ${dueDate}`;
+    }
   }
 
   if (category === 'Xidmət') {
@@ -600,7 +626,7 @@ function addNormalItem() {
     if (!note) note = selected.note || '';
   }
 
-  items.push({
+  const newItem = {
     id: `item-${Date.now()}-${Math.random()}`,
     category,
     label,
@@ -612,9 +638,16 @@ function addNormalItem() {
     subtotal: quantity * price,
     note,
     isReturnable: category !== 'Xidmət' && category !== 'Nəqliyyat',
-    isRecurring: category !== 'Xidmət' && category !== 'Nəqliyyat',
+    isRecurring: !isDaily && category !== 'Xidmət' && category !== 'Nəqliyyat',
     isFixedFee: fixedFee
-  });
+  };
+  if (isDaily) {
+    newItem.rentMode = 'daily';
+    newItem.dueDate = dueDate;
+    newItem.dayCount = quantity;
+    newItem.dailyPrice = price;
+  }
+  items.push(newItem);
 
   renderItems();
 }
@@ -895,6 +928,7 @@ function buildInvoicePayload() {
     customerId: selectedCustomerId || (customers.find(c => (c.name || '').trim().toLowerCase() === selectedCustomerName.value.trim().toLowerCase() && (c.phone || '').trim() === customerPhone.value.trim())?.id || ''),
     customer: selectedCustomerName.value.trim(),
     phone: customerPhone.value.trim(),
+    extraPhone: customerExtraPhone ? customerExtraPhone.value.trim() : '',
     address: customerAddress.value.trim(),
     note: invoiceNote.value.trim(),
     returnDate: returnDate.value,
@@ -989,8 +1023,11 @@ function _invUsageMap(list) {
         return;
       }
       if (item.isReturnable !== false && item.category && item.category !== 'Xidmət' && item.category !== 'Nəqliyyat') {
-        add(item.label || item.category, item.quantity || 0, item.returnedQuantity || 0);
+        var bName = item.label || item.category;
+        var invN = (item.category === 'Taxta' && item.size) ? (bName + ' ' + item.size) : bName;
+        add(invN, item.quantity || 0, item.returnedQuantity || 0);
       }
+
     });
   });
   return usage;
@@ -998,7 +1035,7 @@ function _invUsageMap(list) {
 
 function computeStockShortages(newInvoice) {
   let stock = {};
-  try { stock = JSON.parse(localStorage.getItem('lesa_inventory_v1')) || {}; } catch (e) { stock = {}; }
+  try { stock = JSON.parse(sessionStorage.getItem(branchKey('lesa_inventory_v1'))) || {}; } catch (e) { stock = {}; }
   // Yalnız anbarda izlənən mallar yoxlanılır (izlənməyən mal üçün yanlış xəbərdarlıq olmasın)
   const others = (invoices || []).filter(inv =>
     String(inv.id) !== String(newInvoice.id) && String(inv.id) !== String(editInvoiceId || ''));
@@ -1049,6 +1086,7 @@ function loadInvoiceForEdit() {
   selectedCustomerId = invoice.customerId || '';
   selectedCustomerName.value = invoice.customer || '';
   customerPhone.value = invoice.phone || '';
+  if (customerExtraPhone) customerExtraPhone.value = invoice.extraPhone || '';
   customerAddress.value = invoice.address || '';
   invoiceNote.value = invoice.note || '';
   returnDate.value = invoice.returnDate || '';
@@ -1250,6 +1288,7 @@ function buildInvoicePayload() {
     customerId: selectedCustomerId || (customers.find(c => (c.name || '').trim().toLowerCase() === selectedCustomerName.value.trim().toLowerCase() && (c.phone || '').trim() === customerPhone.value.trim())?.id || ''),
     customer: selectedCustomerName.value.trim(),
     phone: customerPhone.value.trim(),
+    extraPhone: customerExtraPhone ? customerExtraPhone.value.trim() : '',
     address: customerAddress.value.trim(),
     note: invoiceNote.value.trim(),
     returnDate: returnDate.value,
@@ -1281,6 +1320,7 @@ function loadInvoiceForEdit() {
   selectedCustomerId = invoice.customerId || '';
   selectedCustomerName.value = invoice.customer || '';
   customerPhone.value = invoice.phone || '';
+  if (customerExtraPhone) customerExtraPhone.value = invoice.extraPhone || '';
   customerAddress.value = invoice.address || '';
   invoiceNote.value = invoice.note || '';
   returnDate.value = invoice.returnDate || '';

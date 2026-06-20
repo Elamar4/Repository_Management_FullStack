@@ -26,6 +26,12 @@
         <label for="password">Şifrə</label>
         <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" />
       </div>
+      <div class="form-group full">
+        <label for="branch">Filial</label>
+        <select id="branch" class="toolbar-input">
+          <option value="">Filial seçin</option>
+        </select>
+      </div>
 
       <div id="loginError" class="login-error hidden"></div>
 
@@ -33,10 +39,12 @@
     </form>
 
     <div class="login-hint">
-      <strong>Demo hesablar:</strong>
-      <span>elmar / admin123 (Admin)</span>
-      <span>rashad / manager123 (Menecer)</span>
-      <span>nigar / user123 (İşçi)</span>
+      <strong>Demo hesablar (filial avtomatik təyin olunur):</strong>
+      <span>elmar / admin123 — Admin · Mərdəkan</span>
+      <span>rashad / manager123 — Menecer · Mərdəkan</span>
+      <span>sebine / manager123 — Menecer · Pirşağı</span>
+      <span>nigar / user123 — İşçi · Pirşağı</span>
+      <span>kamran / user123 — İşçi · Bakı Mərkəz</span>
     </div>
   </div>
 

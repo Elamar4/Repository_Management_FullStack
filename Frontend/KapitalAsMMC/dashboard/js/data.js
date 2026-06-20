@@ -1,9 +1,10 @@
 /* =====================================================================
    data.js — Giriş (login) + rol/icazə + işçi (user) idarəetməsi.
-   Kanonik tətbiq Dashboard SPA-dır; biznes datası localStorage-dadır
+   Kanonik tətbiq Dashboard SPA-dır; biznes datası sessionStorage-dadır
    (seed-data.js + dashboard.js). Bu fayl işçi hesablarını, rol
-   etiketlərini və icazələri saxlayır. İşçilər localStorage-da
-   ('kapital_users') saxlanılır — Admin yaratdıqda/sildikdə qalıcı olur.
+   etiketlərini və icazələri saxlayır. İşçilər sessionStorage-da
+   ('kapital_users') yalnız cari sessiya üçün saxlanılır — brauzer bağlananda
+   ilkin hesablara qayıdır (qalıcı saxlama yoxdur).
    ===================================================================== */
 (function (global) {
   "use strict";
@@ -23,28 +24,57 @@
 
   function getCurrentRole() {
     let r = null;
-    try { r = global.localStorage.getItem(ROLE_KEY); } catch (e) { r = null; }
+    try { r = global.sessionStorage.getItem(ROLE_KEY); } catch (e) { r = null; }
     if (!r || !PERMISSIONS[r]) r = "admin";
     return r;
   }
   function setRole(role) {
     if (!PERMISSIONS[role]) return;
-    try { global.localStorage.setItem(ROLE_KEY, role); } catch (e) {}
+    try { global.sessionStorage.setItem(ROLE_KEY, role); } catch (e) {}
   }
   function roleLabel(role) { return ROLE_LABELS[role] || role; }
   function can(action) { return PERMISSIONS[getCurrentRole()].indexOf(action) !== -1; }
 
+  /* ----------------------------------------------------------------- Filiallar
+     Bütün biznes datası filiala görə ayrılır. Giriş zamanı filial seçilir,
+     sessiya boyu aktiv kontekst kimi saxlanılır. */
+  const BRANCH_KEY = "kapital_branch";
+  const BRANCHES = [
+    { id: "merdekan", name: "Mərdəkan filialı" },
+    { id: "pirsagi",  name: "Pirşağı filialı" },
+    { id: "baku",     name: "Bakı Mərkəz filialı" },
+  ];
+  function getBranches() { return BRANCHES.slice(); }
+  function getCurrentBranch() {
+    let b = null;
+    try { b = global.sessionStorage.getItem(BRANCH_KEY); } catch (e) { b = null; }
+    if (!b || !BRANCHES.some(function (x) { return x.id === b; })) b = BRANCHES[0].id;
+    return b;
+  }
+  function setCurrentBranch(id) {
+    if (!BRANCHES.some(function (x) { return x.id === id; })) return;
+    try { global.sessionStorage.setItem(BRANCH_KEY, id); } catch (e) {}
+  }
+  function branchLabel(id) {
+    var b = BRANCHES.find(function (x) { return x.id === id; });
+    return b ? b.name : id;
+  }
+  function getCurrentBranchName() { return branchLabel(getCurrentBranch()); }
+
   /* ----------------------------------------------------------------- İşçi hesabları */
+  // Hər işçi bir filiala bağlıdır. Giriş zamanı aktiv filial işçinin filialından təyin olunur.
   const DEFAULT_USERS = [
-    { id: 1, name: "Elmar Əliyev",   username: "elmar",   password: "admin123",   role: "admin",   phone: "+994 50 111 22 33", active: true,  created: "2025-01-10" },
-    { id: 2, name: "Rəşad Quliyev",  username: "rashad",  password: "manager123", role: "manager", phone: "+994 55 222 33 44", active: true,  created: "2025-02-04" },
-    { id: 3, name: "Nigar Hüseynova",username: "nigar",   password: "user123",    role: "user",    phone: "+994 70 333 44 55", active: true,  created: "2025-03-18" },
-    { id: 4, name: "Tural Məmmədov", username: "tural",   password: "user123",    role: "user",    phone: "+994 51 444 55 66", active: false, created: "2025-04-22" },
+    { id: 1, name: "Elmar Əliyev",   username: "elmar",   password: "admin123",   role: "admin",   branch: "merdekan", phone: "+994 50 111 22 33", active: true,  created: "2025-01-10" },
+    { id: 2, name: "Rəşad Quliyev",  username: "rashad",  password: "manager123", role: "manager", branch: "merdekan", phone: "+994 55 222 33 44", active: true,  created: "2025-02-04" },
+    { id: 3, name: "Nigar Hüseynova",username: "nigar",   password: "user123",    role: "user",    branch: "pirsagi",  phone: "+994 70 333 44 55", active: true,  created: "2025-03-18" },
+    { id: 4, name: "Tural Məmmədov", username: "tural",   password: "user123",    role: "user",    branch: "pirsagi",  phone: "+994 51 444 55 66", active: false, created: "2025-04-22" },
+    { id: 5, name: "Səbinə Vəliyeva",username: "sebine",  password: "manager123", role: "manager", branch: "pirsagi",  phone: "+994 55 777 88 99", active: true,  created: "2025-05-06" },
+    { id: 6, name: "Kamran İsmayılov",username: "kamran", password: "user123",    role: "user",    branch: "baku",     phone: "+994 50 222 33 44", active: true,  created: "2025-05-20" },
   ];
 
   function loadUsers() {
     try {
-      const raw = global.localStorage.getItem(USERS_KEY);
+      const raw = global.sessionStorage.getItem(USERS_KEY);
       const arr = raw ? JSON.parse(raw) : null;
       if (Array.isArray(arr) && arr.length) return arr;
     } catch (e) {}
@@ -52,7 +82,7 @@
   }
   let users = loadUsers();
   function saveUsers() {
-    try { global.localStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch (e) {}
+    try { global.sessionStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch (e) {}
   }
 
   function getUsers() { return users.slice(); }
@@ -71,6 +101,7 @@
       username: String(data.username).trim(),
       password: String(data.password),
       role: PERMISSIONS[data.role] ? data.role : "user",
+      branch: BRANCHES.some(function (b) { return b.id === data.branch; }) ? data.branch : BRANCHES[0].id,
       phone: String(data.phone || "").trim(),
       active: data.active !== false,
       created: new Date().toISOString().slice(0, 10),
@@ -103,6 +134,7 @@
       username: data.username != null ? String(data.username).trim() : users[idx].username,
       password: data.password ? String(data.password) : users[idx].password,
       role: PERMISSIONS[data.role] ? data.role : users[idx].role,
+      branch: BRANCHES.some(function (b) { return b.id === data.branch; }) ? data.branch : (users[idx].branch || BRANCHES[0].id),
       phone: data.phone != null ? String(data.phone).trim() : users[idx].phone,
       active: data.active != null ? !!data.active : users[idx].active,
     });
@@ -112,16 +144,16 @@
 
   /* ----------------------------------------------------------------- Giriş / sessiya */
   function setCurrentUser(id) {
-    try { global.localStorage.setItem(USER_KEY, String(id)); } catch (e) {}
+    try { global.sessionStorage.setItem(USER_KEY, String(id)); } catch (e) {}
   }
   function getCurrentUser() {
     let id = null;
-    try { id = global.localStorage.getItem(USER_KEY); } catch (e) { id = null; }
+    try { id = global.sessionStorage.getItem(USER_KEY); } catch (e) { id = null; }
     if (!id) return null;
     return users.find(function (u) { return String(u.id) === String(id); }) || null;
   }
   function logout() {
-    try { global.localStorage.removeItem(USER_KEY); } catch (e) {}
+    try { global.sessionStorage.removeItem(USER_KEY); } catch (e) {}
   }
   // İşçi adı + şifrə yoxlanışı (mock). Uğurda rol və sessiya təyin olunur.
   function authenticate(username, password) {
@@ -131,6 +163,8 @@
     if (!user.active) return { ok: false, reason: "inactive" };
     setRole(user.role);
     setCurrentUser(user.id);
+    // Filial işçinin öz filialından avtomatik təyin olunur
+    if (user.branch) setCurrentBranch(user.branch);
     return { ok: true, user: user };
   }
 
@@ -145,5 +179,9 @@
     // işçilər (idarəetmə)
     users: users, getUsers: getUsers, getUser: getUser,
     addUser: addUser, deleteUser: deleteUser, updateUser: updateUser,
+    // filiallar
+    getBranches: getBranches, getCurrentBranch: getCurrentBranch,
+    setCurrentBranch: setCurrentBranch, getCurrentBranchName: getCurrentBranchName,
+    branchLabel: branchLabel,
   };
 })(window);
