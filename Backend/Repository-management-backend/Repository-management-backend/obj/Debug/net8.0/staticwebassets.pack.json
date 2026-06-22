@@ -1,0 +1,385 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Repository-management-backend.bundle.scp.css",
+      "PackagePath": "staticwebassets\\Repository-management-backend.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\app.css",
+      "PackagePath": "staticwebassets\\assets\\css\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\categories.css",
+      "PackagePath": "staticwebassets\\assets\\css\\categories.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\customer-detail.css",
+      "PackagePath": "staticwebassets\\assets\\css\\customer-detail.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\customers.css",
+      "PackagePath": "staticwebassets\\assets\\css\\customers.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\dashboard.css",
+      "PackagePath": "staticwebassets\\assets\\css\\dashboard.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\debts.css",
+      "PackagePath": "staticwebassets\\assets\\css\\debts.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\deposits.css",
+      "PackagePath": "staticwebassets\\assets\\css\\deposits.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\invoice-detail.css",
+      "PackagePath": "staticwebassets\\assets\\css\\invoice-detail.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\invoices.css",
+      "PackagePath": "staticwebassets\\assets\\css\\invoices.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\login.css",
+      "PackagePath": "staticwebassets\\assets\\css\\login.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\new-invoice.css",
+      "PackagePath": "staticwebassets\\assets\\css\\new-invoice.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\users.css",
+      "PackagePath": "staticwebassets\\assets\\css\\users.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\css\\warehouse.css",
+      "PackagePath": "staticwebassets\\assets\\css\\warehouse.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\img\\brand_header.png",
+      "PackagePath": "staticwebassets\\assets\\img\\brand_header.png"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\img\\kapital-logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\kapital-logo.png"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\app-shell.js",
+      "PackagePath": "staticwebassets\\assets\\js\\app-shell.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\categories.js",
+      "PackagePath": "staticwebassets\\assets\\js\\categories.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\customer-detail.js",
+      "PackagePath": "staticwebassets\\assets\\js\\customer-detail.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\customers.js",
+      "PackagePath": "staticwebassets\\assets\\js\\customers.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\dashboard-roles.js",
+      "PackagePath": "staticwebassets\\assets\\js\\dashboard-roles.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\dashboard.js",
+      "PackagePath": "staticwebassets\\assets\\js\\dashboard.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\data.js",
+      "PackagePath": "staticwebassets\\assets\\js\\data.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\debts.js",
+      "PackagePath": "staticwebassets\\assets\\js\\debts.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\deposits.js",
+      "PackagePath": "staticwebassets\\assets\\js\\deposits.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\invoice-detail.js",
+      "PackagePath": "staticwebassets\\assets\\js\\invoice-detail.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\invoices.js",
+      "PackagePath": "staticwebassets\\assets\\js\\invoices.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\login.js",
+      "PackagePath": "staticwebassets\\assets\\js\\login.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\new-invoice.js",
+      "PackagePath": "staticwebassets\\assets\\js\\new-invoice.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
+      "PackagePath": "staticwebassets\\assets\\js\\seed-data.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\ui-enhance.js",
+      "PackagePath": "staticwebassets\\assets\\js\\ui-enhance.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\users.js",
+      "PackagePath": "staticwebassets\\assets\\js\\users.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\warehouse.js",
+      "PackagePath": "staticwebassets\\assets\\js\\warehouse.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\favicon.ico",
+      "PackagePath": "staticwebassets\\favicon.ico"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "PackagePath": "staticwebassets\\lib\\bootstrap"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\LICENSE.md"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "PackagePath": "staticwebassets\\lib\\jquery\\LICENSE.txt"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Repository-management-backend.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.Repository-management-backend.props",
+      "PackagePath": "build\\Repository-management-backend.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.Repository-management-backend.props",
+      "PackagePath": "buildMultiTargeting\\Repository-management-backend.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.Repository-management-backend.props",
+      "PackagePath": "buildTransitive\\Repository-management-backend.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

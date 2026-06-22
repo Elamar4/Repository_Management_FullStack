@@ -5,6 +5,74 @@
     {
       "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\security\\currentuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\security\\currentuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\controllers\\inventorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\controllers\\inventorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\controllers\\customerscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\controllers\\customerscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\views\\invoice\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\views\\invoice\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\models\\entities\\branch.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\models\\entities\\branch.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\data\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\data\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\models\\enums\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\models\\enums\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\views\\shared\\_header.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\views\\shared\\_header.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\migrations\\20260622180918_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\migrations\\20260622180918_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,11 +82,126 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CurrentUserService.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Security\\CurrentUserService.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Security\\CurrentUserService.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Security\\CurrentUserService.cs",
+              "RelativeToolTip": "Repository-management-backend\\Security\\CurrentUserService.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T19:36:13.532Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "InventoryController.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\InventoryController.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\InventoryController.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\InventoryController.cs",
+              "RelativeToolTip": "Repository-management-backend\\Controllers\\InventoryController.cs",
+              "ViewState": "AQIAAB4AAAAAAAAAAAAswAgAAABNAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T19:28:30.643Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "CustomersController.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\CustomersController.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\CustomersController.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\CustomersController.cs",
+              "RelativeToolTip": "Repository-management-backend\\Controllers\\CustomersController.cs",
+              "ViewState": "AQIAADMAAAAAAAAAAAAmwAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T19:15:13.835Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Invoice\\Create.cshtml",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Invoice\\Create.cshtml",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Invoice\\Create.cshtml",
+              "RelativeToolTip": "Repository-management-backend\\Views\\Invoice\\Create.cshtml",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-22T19:08:33.301Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\UsersController.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "Repository-management-backend\\Controllers\\UsersController.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T19:02:59.358Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "Repository-management-backend\\Controllers\\AccountController.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T18:50:49.858Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "DbInitializer.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\DbInitializer.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Data\\DbInitializer.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\DbInitializer.cs",
+              "RelativeToolTip": "Repository-management-backend\\Data\\DbInitializer.cs",
+              "ViewState": "AQIAABAAAAAAAAAAAAAgwCAAAACaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T18:29:24.413Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Data\\AppDbContext.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContext.cs",
+              "RelativeToolTip": "Repository-management-backend\\Data\\AppDbContext.cs",
+              "ViewState": "AQIAAD0AAAAAAAAAAAAiwCIAAABMAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T18:06:10.273Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Enums.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Models\\Enums\\Enums.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Models\\Enums\\Enums.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Models\\Enums\\Enums.cs",
+              "RelativeToolTip": "Repository-management-backend\\Models\\Enums\\Enums.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T18:03:21.541Z"
             },
             {
               "$type": "Document",
@@ -28,10 +211,107 @@
               "RelativeDocumentMoniker": "Repository-management-backend\\Program.cs",
               "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Program.cs",
               "RelativeToolTip": "Repository-management-backend\\Program.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAGMAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-11T12:54:39.82Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\appsettings.json",
+              "RelativeDocumentMoniker": "Repository-management-backend\\appsettings.json",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\appsettings.json",
+              "RelativeToolTip": "Repository-management-backend\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAiAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-06-22T18:07:32.9Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Branch.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Models\\Entities\\Branch.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Models\\Entities\\Branch.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Models\\Entities\\Branch.cs",
+              "RelativeToolTip": "Repository-management-backend\\Models\\Entities\\Branch.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAqwAMAAAARAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T18:01:46.813Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "HomeController.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\HomeController.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\HomeController.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\HomeController.cs",
+              "RelativeToolTip": "Repository-management-backend\\Controllers\\HomeController.cs",
+              "ViewState": "AQIAAAgAAAAAAAAAAAAxwAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-21T15:33:56.91Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "20260622180918_InitialCreate.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Migrations\\20260622180918_InitialCreate.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Migrations\\20260622180918_InitialCreate.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Migrations\\20260622180918_InitialCreate.cs",
+              "RelativeToolTip": "Repository-management-backend\\Migrations\\20260622180918_InitialCreate.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T18:09:18.848Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Home\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Home\\Index.cshtml",
+              "RelativeToolTip": "Repository-management-backend\\Views\\Home\\Index.cshtml",
+              "ViewState": "AQIAAIQCAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-21T15:34:37.512Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "AppDbContextFactory.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContextFactory.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Data\\AppDbContextFactory.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContextFactory.cs",
+              "RelativeToolTip": "Repository-management-backend\\Data\\AppDbContextFactory.cs",
+              "ViewState": "AQIAAAoAAAAAAAAAAAA1wAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-22T18:29:21.467Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "_Header.cshtml",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Shared\\_Header.cshtml",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Shared\\_Header.cshtml",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Shared\\_Header.cshtml",
+              "RelativeToolTip": "Repository-management-backend\\Views\\Shared\\_Header.cshtml",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-21T15:30:39.383Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "Repository-management-backend\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-21T15:29:45.51Z"
             }
           ]
         }
