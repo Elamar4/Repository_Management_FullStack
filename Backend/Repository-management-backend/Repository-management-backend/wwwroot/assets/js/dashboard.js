@@ -669,17 +669,7 @@ function syncInvoiceCustomerHistory(invoice) {
 }
 
 function refreshData() {
-  invoices = getAnyStorageData(STORAGE_KEYS.invoices, LEGACY_KEYS.invoices, []).map(invoice => ({
-    ...invoice,
-    paymentHistory: normalizePaymentHistory(invoice),
-    paidAmount: getInvoicePaidAmountFromHistory(invoice)
-  }));
-  customers = getAnyStorageData(STORAGE_KEYS.customers, LEGACY_KEYS.customers, []);
-  extraCategories = getAnyStorageData(STORAGE_KEYS.extraCategories, LEGACY_KEYS.extraCategories, []);
-  serviceCategories = getAnyStorageData(STORAGE_KEYS.serviceCategories, LEGACY_KEYS.serviceCategories, []);
-  poleCategories = getAnyStorageData(STORAGE_KEYS.poleCategories, LEGACY_KEYS.poleCategories, []);
-  inventoryStock = getStorageData(STORAGE_KEYS.inventory, {});
-  refreshCustomerStorageIfNeeded();
+  /* sessionStorage/mock qaldırıldı — bütün data API-dən (render funksiyalarında) yüklənir. */
 }
 
 function getInvoiceStatus(invoice) {
@@ -777,83 +767,66 @@ function getDueTekerliLesaItems() {
   return result;
 }
 
-function renderAlerts() {
-  const dueItems = getDueTekerliLesaItems();
-  const cards = [];
-  if (dueItems.length) {
-    cards.push(`
-      <div class="alert-card">
-        <h3>⚠️ Vaxtı çatan günlük mallar var</h3>
-        <p>Aşağıdakı günlük verilən malların (təkərli lesa və günlük əlavə kateqoriyalar) vaxtı çatıb və ya keçib. Qaytarılana və ya müddəti artırılana qədər görünəcək.</p>
-        <div class="alert-list">
-          ${dueItems.map(d => `
-            <div class="alert-item">
-              <strong>${escapeHtml(d.item)} — ${escapeHtml(d.customer)}</strong>
-              <div>Qaimə: <a class="inv-invoice-link" onclick="editInvoice('${d.invoiceId}')" title="Qaiməyə keçid">${escapeHtml(d.invoiceNo)}</a></div>
-              <div>Telefon: ${escapeHtml(d.phone)}</div>
-              <div>Vaxtı: ${formatDate(d.dueDate)}</div>
-              <div>Məbləğ: ${formatMoney(d.subtotal)}</div>
-            </div>
-          `).join('')}
-        </div>
+/* ===== Modul 6: Dashboard — SQL Server (API) ===== */
+async function renderAlerts() {
+  if (!alertsBox) return;
+  let notes;
+  try { notes = await API.dashboard.notifications(); }
+  catch (e) { return; }
+  if (!notes.length) { alertsBox.innerHTML = ''; return; }
+  alertsBox.innerHTML = `
+    <div class="alert-card">
+      <h3>⚠️ Bildirişlər</h3>
+      <div class="alert-list">
+        ${notes.map(n => `
+          <div class="alert-item">
+            <strong>${escapeHtml(n.message)}</strong>
+            ${n.invoiceId ? `<div>Qaimə: <a class="inv-invoice-link" onclick="editInvoice('${n.invoiceId}')" title="Qaiməyə keçid">${escapeHtml(n.invoiceNo || '-')}</a></div>` : ''}
+            ${n.customerName ? `<div>Müştəri: ${escapeHtml(n.customerName)}</div>` : ''}
+          </div>`).join('')}
       </div>
-    `);
-  }
-  alertsBox.innerHTML = cards.join('');
+    </div>`;
 }
 
-function renderStats() {
-  const activeCount = invoices.filter(x => getInvoiceStatus(x) === 'Aktiv').length;
-  const overdueCount = invoices.filter(x => getInvoiceStatus(x) === 'Gecikir').length;
-  const dueTekerliCount = getDueTekerliLesaItems().length;
-  const totalDebt = invoices.reduce((sum, x) => sum + Number(x.remainingDebt || 0), 0);
-  const totalDeposit = invoices.reduce((sum, x) => sum + Number(x.depositAmount || 0), 0);
-  const thisMonthKey = new Date().toISOString().slice(0, 7);
-  const monthInvoices = invoices.filter(x => (getInvoiceEffectiveDate(x) || '').slice(0, 7) === thisMonthKey);
-  const monthIncome = monthInvoices.reduce((sum, x) => sum + Number(x.paidAmount || 0), 0);
-  let topRented = '-';
-  try {
-    const usageMap = collectInventoryUsage();
-    const top = Object.keys(usageMap)
-      .map(n => ({ name: n, rented: Number(usageMap[n].rented || 0) }))
-      .filter(x => x.rented > 0)
-      .sort((a, b) => b.rented - a.rented)[0];
-    if (top) topRented = `${top.name} (${top.rented})`;
-  } catch (e) { topRented = '-'; }
-
+async function renderStats() {
+  if (!statsGrid) return;
+  let s;
+  try { s = await API.dashboard.stats(); }
+  catch (e) { return; }
   const stats = [
-    { title: 'Ümumi aktiv qaimə sayı', value: activeCount, note: 'Hazırda açıq qaimələr' },
-    { title: 'Ümumi borc', value: formatMoney(totalDebt), note: 'Bağlanmamış ümumi borc' },
-    { title: 'Ümumi depozit', value: formatMoney(totalDeposit), note: 'Saxlanılan depozit' },
-    { title: 'Bu ay əldə olunan gəlir', value: formatMoney(monthIncome), note: 'Bu ayın ödənişləri' },
-    { title: 'Bu ay verilən qaimələr', value: monthInvoices.length, note: 'Cari ay' },
-    { title: 'Vaxtı keçmiş qaimələr', value: overdueCount, note: 'Gecikən qaimələr' },
-    { title: 'Vaxtı bitmiş günlük mallar', value: dueTekerliCount, note: 'Təkərli lesa' },
-    { title: 'Ən çox icarəyə verilən mal', value: topRented, note: 'İcarədə olan say' }
+    { title: 'Ümumi aktiv qaimə sayı', value: s.openInvoiceCount, note: 'Hazırda açıq qaimələr' },
+    { title: 'Ümumi borc', value: formatMoney(s.totalDebt), note: 'Bağlanmamış ümumi borc' },
+    { title: 'Ümumi depozit', value: formatMoney(s.totalDeposit), note: 'Saxlanılan depozit' },
+    { title: 'Ümumi ödəniş', value: formatMoney(s.totalPaid), note: 'Cəmi ödənişlər' },
+    { title: 'Müştəri sayı', value: s.customerCount, note: 'Filial üzrə' },
+    { title: 'Vaxtı keçmiş qaimələr', value: s.overdueCount, note: 'Gecikən qaimələr' },
+    { title: 'Bu gün / yaxın (≤3 gün)', value: `${s.dueTodayCount} / ${s.dueSoonCount}`, note: 'Qaytarma yaxınlaşır' },
+    { title: 'Anbar mal növü', value: s.inventoryItemCount, note: 'Anbarda qeydli' }
   ];
-
   statsGrid.innerHTML = stats.map(stat => `<div class="stat-card"><div class="title">${stat.title}</div><div class="value">${stat.value}</div><div class="note">${stat.note}</div></div>`).join('');
 }
 
-function renderDashboardTable() {
-  const overdue = getFilteredInvoices().filter(x => getInvoiceStatus(x) === 'Gecikir');
-  if (!overdue.length) {
+async function renderDashboardTable() {
+  if (!dashboardTable) return;
+  let data;
+  try { data = await API.dashboard.overdue(); }
+  catch (e) { dashboardTable.innerHTML = '<tr><td colspan="6">Xəta: ' + escapeHtml(e.message || '') + '</td></tr>'; return; }
+  if (!data.length) {
     dashboardTable.innerHTML = '<tr><td colspan="6">Gecikən qaimə yoxdur</td></tr>';
     return;
   }
-
-  dashboardTable.innerHTML = overdue.map(invoice => `
+  dashboardTable.innerHTML = data.map(o => `
     <tr>
-      <td><strong>${invoice.invoiceNo || '-'}</strong></td>
-      <td><div>${invoice.customer || '-'}</div><div class="phone-mini">${invoice.phone || '-'}</div></td>
-      <td>${formatDate(invoice.returnDate)}</td>
-      <td>${formatMoney(invoice.totalAmount)}</td>
-      <td><span class="badge ${getBadgeClass(getInvoiceStatus(invoice))}">${getInvoiceStatus(invoice)}</span></td>
+      <td><strong>${escapeHtml(o.invoiceNo || '-')}</strong></td>
+      <td><div>${escapeHtml(o.customerName || '-')}</div><div class="phone-mini">${escapeHtml(o.phone || '-')}</div></td>
+      <td>${formatDate(o.returnDate)} <span class="badge red">${o.daysOverdue} gün</span></td>
+      <td>${formatMoney(o.remainingDebt)}</td>
+      <td><span class="badge red">Gecikir</span></td>
       <td>
         <div class="action-cell">
-          <button class="action-btn edit" onclick="editInvoice('${invoice.id}')">Edit</button>
-          <button class="action-btn print" onclick="printInvoice('${invoice.id}')">Çap et</button>
-          <button class="action-btn close" onclick="extendInvoiceOneMonth('${invoice.id}')">Artır</button>
+          <button class="action-btn edit" onclick="editInvoice('${o.invoiceId}')">Edit</button>
+          <button class="action-btn print" onclick="printInvoice('${o.invoiceId}')">Çap et</button>
+          <button class="action-btn close" onclick="extendInvoiceOneMonth('${o.invoiceId}')">Artır</button>
         </div>
       </td>
     </tr>
@@ -951,32 +924,24 @@ function getExtensionQuote(invoice, mode = 'month') {
   return { ratio, days, monthsLabel, items, total: Number(total.toFixed(2)) };
 }
 
-function updateExtensionPreview() {
+async function updateExtensionPreview() {
   if (!activeExtensionInvoiceId) return;
-  const invoice = invoices.find(item => String(item.id) === String(activeExtensionInvoiceId));
-  if (!invoice) return;
-  const quote = getExtensionQuote(invoice, extensionTypeSelect.value || 'month');
-  const discount = Math.min(Math.max(Number(extensionDiscountInput?.value || 0), 0), Number(quote.total || 0));
-  const finalAmount = Math.max(Number(quote.total || 0) - discount, 0);
-  extensionPreviewAmount.value = formatMoney(quote.total);
+  const mode = extensionTypeSelect.value || 'month';
+  let preview;
+  try { preview = await API.extensions.preview(activeExtensionInvoiceId, 1, mode); }
+  catch (e) { return; }
+  const discount = Math.min(Math.max(Number(extensionDiscountInput?.value || 0), 0), Number(preview.suggestedAmount || 0));
+  const finalAmount = Math.max(Number(preview.suggestedAmount || 0) - discount, 0);
+  if (extensionPreviewAmount) extensionPreviewAmount.value = formatMoney(preview.suggestedAmount);
   if (extensionFinalAmount) extensionFinalAmount.value = formatMoney(finalAmount);
-  // Cari və yeni bitmə tarixi
-  const currentEnd = invoice.returnDate;
-  let newEnd = '-';
-  const _ne = new Date(invoice.returnDate);
-  if (!Number.isNaN(_ne.getTime())) { _ne.setDate(_ne.getDate() + (quote.days || 30)); newEnd = _ne.toISOString().slice(0, 10); }
   if (extensionQuoteBox) {
     extensionQuoteBox.innerHTML = `
       <div class="extension-summary-grid">
-        <div class="extension-summary-card"><span>Cari bitmə tarixi</span><strong>${formatDate(currentEnd)}</strong></div>
-        <div class="extension-summary-card"><span>Yeni bitmə tarixi</span><strong>${formatDate(newEnd)}</strong></div>
-        <div class="extension-summary-card"><span>Uzadılacaq müddət</span><strong>${quote.monthsLabel}</strong></div>
-        <div class="extension-summary-card"><span>Əlavə hesablanacaq məbləğ</span><strong>${formatMoney(quote.total)}</strong></div>
+        <div class="extension-summary-card"><span>Cari bitmə tarixi</span><strong>${formatDate(preview.currentReturnDate)}</strong></div>
+        <div class="extension-summary-card"><span>Yeni bitmə tarixi</span><strong>${formatDate(preview.newReturnDate)}</strong></div>
+        <div class="extension-summary-card"><span>Uzadılacaq müddət</span><strong>${mode === 'half' ? '15 gün' : '1 ay'}</strong></div>
+        <div class="extension-summary-card"><span>Əlavə hesablanacaq məbləğ</span><strong>${formatMoney(preview.suggestedAmount)}</strong></div>
         <div class="extension-summary-card"><span>Endirimdən sonra</span><strong>${formatMoney(finalAmount)}</strong></div>
-      </div>
-      <div class="extension-item-list">
-        ${quote.items.length ? quote.items.map(item => `<div class="extension-item-row"><span>${escapeHtml(item.label || item.category || '-')} ${item.size ? '/ ' + escapeHtml(item.size) : ''}</span><strong>${formatMoney(item.extensionCharge)}</strong></div>`).join('') : '<div class="extension-item-row"><span>Artırılacaq mal yoxdur</span><strong>0.00 AZN</strong></div>'}
-        ${discount ? `<div class="extension-item-row"><span>Endirim</span><strong>-${formatMoney(discount)}</strong></div>` : ''}
       </div>`;
   }
 }
@@ -1642,44 +1607,24 @@ window.deleteInventoryStock = async function(id){
 };
 
 
-function renderReports() {
-  const totalInvoices = invoices.length;
-  const totalMoney = invoices.reduce((sum, x) => sum + Number(x.totalAmount || 0), 0);
-  const totalPaid = invoices.reduce((sum, x) => sum + Number(x.paidAmount || 0), 0);
-  const totalDeposit = invoices.reduce((sum, x) => sum + Number(x.depositAmount || 0), 0);
-  const totalDebt = invoices.reduce((sum, x) => sum + Number(x.remainingDebt || 0), 0);
-  const activeInvoices = invoices.filter(x => getInvoiceStatus(x) === 'Aktiv').length;
-  const overdueInvoices = invoices.filter(x => getInvoiceStatus(x) === 'Gecikir').length;
-  const thisMonthKey = new Date().toISOString().slice(0, 7);
-  const monthInvoices = invoices.filter(x => (getInvoiceEffectiveDate(x) || '').slice(0, 7) === thisMonthKey);
-  const monthRevenue = monthInvoices.reduce((sum, x) => sum + Number(x.totalAmount || 0), 0);
-  const monthPaid = monthInvoices.reduce((sum, x) => sum + Number(x.paidAmount || 0), 0);
-  const debtors = customers.map(customer => ({ customer, ledger: getCustomerLedger(customer) })).sort((a, b) => b.ledger.debt - a.ledger.debt);
-  const topDebtor = debtors[0];
-  const topDeposit = [...debtors].sort((a, b) => b.ledger.deposit - a.ledger.deposit)[0];
-  let topRented = [];
+/* ===== Modul 7: Hesabatlar — SQL Server (API) ===== */
+async function renderReports() {
+  if (!reportsBox) return;
+  let inv, deb;
   try {
-    const usageMap = collectInventoryUsage();
-    topRented = Object.keys(usageMap)
-      .map(n => ({ name: n, rented: Number(usageMap[n].rented || 0) }))
-      .filter(x => x.rented > 0)
-      .sort((a, b) => b.rented - a.rented)
-      .slice(0, 3);
-  } catch (e) { topRented = []; }
-  const topRentedSmall = topRented.length
-    ? topRented.map(r => `${escapeHtml(r.name)}: ${r.rented}`).join(' · ')
-    : 'Məlumat yoxdur';
-
+    [inv, deb] = await Promise.all([API.reports.invoices({}), API.reports.debtors().catch(() => ({ rows: [] }))]);
+  } catch (e) { return; }
+  const rows = deb.rows || [];
+  const topDebtor = rows.slice().sort((a, b) => b.debt - a.debt)[0];
+  const topDeposit = rows.slice().sort((a, b) => b.deposit - a.deposit)[0];
   reportsBox.innerHTML = `
-    <div class="report-box"><h4>Ümumi qaimə sayı</h4><strong>${totalInvoices}</strong><small>Aktiv: ${activeInvoices} / Gecikən: ${overdueInvoices}</small></div>
-    <div class="report-box"><h4>Ümumi məbləğ</h4><strong>${formatMoney(totalMoney)}</strong><small>Sistemdə olan bütün qaimələrin cəmi</small></div>
-    <div class="report-box"><h4>Ödənilən məbləğ</h4><strong>${formatMoney(totalPaid)}</strong><small>Qaimələr üzrə yazılmış bütün ödənişlər</small></div>
-    <div class="report-box"><h4>Depozit məbləği</h4><strong>${formatMoney(totalDeposit)}</strong><small>Hazırda saxlanılan depozitlərin cəmi</small></div>
-    <div class="report-box"><h4>Qalan borc</h4><strong>${formatMoney(totalDebt)}</strong><small>Hələ bağlanmamış ümumi borc</small></div>
-    <div class="report-box"><h4>Bu ayın qaimələri</h4><strong>${monthInvoices.length}</strong><small>Məbləğ: ${formatMoney(monthRevenue)} / Ödəniş: ${formatMoney(monthPaid)}</small></div>
-    <div class="report-box"><h4>Ən çox borcu olan müştəri</h4><strong>${escapeHtml(topDebtor?.customer?.name || '-')}</strong><small>${topDebtor ? `Borc: ${formatMoney(topDebtor.ledger.debt)}` : 'Məlumat yoxdur'}</small></div>
-    <div class="report-box"><h4>Ən çox depoziti olan müştəri</h4><strong>${escapeHtml(topDeposit?.customer?.name || '-')}</strong><small>${topDeposit ? `Depozit: ${formatMoney(topDeposit.ledger.deposit)}` : 'Məlumat yoxdur'}</small></div>
-    <div class="report-box"><h4>Ən çox icarəyə verilən mallar</h4><strong>${topRented[0] ? escapeHtml(topRented[0].name) : '-'}</strong><small>${topRentedSmall}</small></div>
+    <div class="report-box"><h4>Ümumi qaimə sayı</h4><strong>${inv.count}</strong><small>Bütün qaimələr</small></div>
+    <div class="report-box"><h4>Ümumi məbləğ</h4><strong>${formatMoney(inv.totalAmount)}</strong><small>Qaimələrin cəmi</small></div>
+    <div class="report-box"><h4>Ödənilən məbləğ</h4><strong>${formatMoney(inv.totalPaid)}</strong><small>Ödənişlərin cəmi</small></div>
+    <div class="report-box"><h4>Depozit məbləği</h4><strong>${formatMoney(inv.totalDeposit)}</strong><small>Saxlanılan depozitlər</small></div>
+    <div class="report-box"><h4>Qalan borc</h4><strong>${formatMoney(inv.totalDebt)}</strong><small>Bağlanmamış ümumi borc</small></div>
+    <div class="report-box"><h4>Ən çox borcu olan müştəri</h4><strong>${escapeHtml(topDebtor?.customerName || '-')}</strong><small>${topDebtor ? `Borc: ${formatMoney(topDebtor.debt)}` : 'Məlumat yoxdur'}</small></div>
+    <div class="report-box"><h4>Ən çox depoziti olan müştəri</h4><strong>${escapeHtml(topDeposit?.customerName || '-')}</strong><small>${topDeposit && topDeposit.deposit > 0 ? `Depozit: ${formatMoney(topDeposit.deposit)}` : 'Məlumat yoxdur'}</small></div>
   `;
 }
 
@@ -1841,97 +1786,31 @@ window.extendInvoiceOneMonth = function(invoiceId) {
   openModal(extensionModal);
 };
 
-function saveExtensionOperation() {
-  const index = invoices.findIndex(item => String(item.id) === String(activeExtensionInvoiceId));
-  if (index === -1) return;
-  const invoice = cloneData(invoices[index]);
+async function saveExtensionOperation() {
+  const invoice = invoices.find(item => String(item.id) === String(activeExtensionInvoiceId));
+  if (!invoice) return;
   const mode = extensionTypeSelect.value || 'month';
   const paidNow = Number(extensionPaidNowInput.value || 0);
   if (paidNow < 0) return alert('Ödənişi düzgün yaz.');
 
-  const returnDate = new Date(invoice.returnDate);
-  if (Number.isNaN(returnDate.getTime())) return alert('Qaytarma tarixi yanlışdır.');
-  returnDate.setDate(returnDate.getDate() + (mode === 'half' ? 15 : 30));
-  invoice.returnDate = returnDate.toISOString().slice(0, 10);
+  // Təkrar hesablama backend-dən (summary-də mallar yoxdur)
+  let preview;
+  try { preview = await API.extensions.preview(invoice.id, 1, mode); }
+  catch (e) { return alert(e.message || 'Hesablama alınmadı.'); }
 
-  const quote = getExtensionQuote(invoice, mode);
-  const discount = Math.min(Math.max(Number(extensionDiscountInput?.value || 0), 0), Number(quote.total || 0));
-  let extraTotal = 0;
-  invoice.items = (invoice.items || []).map(item => {
-    const updated = { ...item };
-    if (updated.rentMode === 'daily') {
-      const addDays = mode === 'half' ? 15 : 30;
-      const extra = Number((Number(updated.dailyPrice || 0) * addDays).toFixed(2));
-      updated.dayCount = Number(updated.dayCount || 0) + addDays;
-      updated.subtotal = Number((Number(updated.subtotal || 0) + extra).toFixed(2));
-      if (updated.dueDate) {
-        const due = new Date(updated.dueDate);
-        due.setDate(due.getDate() + addDays);
-        updated.dueDate = due.toISOString().slice(0, 10);
-      }
-      extraTotal += extra;
-      return updated;
-    }
+  const discount = Math.min(Math.max(Number(extensionDiscountInput?.value || 0), 0), Number(preview.suggestedAmount || 0));
+  const addedAmount = Math.max(Number(preview.suggestedAmount || 0) - discount, 0);
+  const note = extensionNoteInput.value.trim();
 
-    if (updated.category === 'Xidmət' || updated.category === 'Nəqliyyat') return updated;
-    if (updated.isRecurring === false || updated.isFixedFee) return updated;
-
-    const extra = Number((Number(updated.customPrice || 0) * Number(updated.quantity || 0) * (mode === 'half' ? 0.5 : 1)).toFixed(2));
-    updated.subtotal = Number((Number(updated.subtotal || 0) + extra).toFixed(2));
-    extraTotal += extra;
-    return updated;
-  });
-
-
-  if (discount > 0) {
-    invoice.items = invoice.items || [];
-    invoice.items.push({
-      id: `discount-ext-${Date.now()}`,
-      category: 'Endirim',
-      label: 'Uzatma endirimi',
-      size: mode === 'half' ? '15 günlük artırma' : '1 aylıq artırma',
-      unit: 'endirim',
-      quantity: 1,
-      customPrice: -Number(discount.toFixed(2)),
-      subtotal: -Number(discount.toFixed(2)),
-      note: 'Uzatma zamanı edilən endirim',
-      isReturnable: false,
-      isRecurring: false,
-      isFixedFee: true
-    });
-    extraTotal = Math.max(extraTotal - discount, 0);
+  try {
+    await API.extensions.extend(invoice.id, { newReturnDate: preview.newReturnDate, addedAmount, paidNow, mode, note });
+  } catch (e) {
+    return alert(e.message || 'Artırma alınmadı.');
   }
 
-  invoice.paymentHistory = normalizePaymentHistory(invoice);
-  if (paidNow > 0) {
-    invoice.paymentHistory.unshift({
-      id: `pay-${Date.now()}`,
-      date: new Date().toISOString(),
-      amount: Number(paidNow.toFixed(2)),
-      note: `${mode === 'half' ? '15 günlük' : '1 aylıq'} uzatma zamanı ödəniş${extensionNoteInput.value.trim() ? ' / ' + extensionNoteInput.value.trim() : ''}`,
-      direction: 'in'
-    });
-  }
-  invoice.paidAmount = getInvoicePaidAmountFromHistory({ ...invoice, paymentHistory: invoice.paymentHistory });
-  invoice.extensionHistory = invoice.extensionHistory || [];
-  invoice.extensionHistory.unshift({
-    date: new Date().toISOString(),
-    months: mode === 'half' ? 0.5 : 1,
-    days: mode === 'half' ? 15 : 30,
-    mode,
-    addedAmount: Number(extraTotal.toFixed(2)),
-    discount: Number(discount.toFixed(2)),
-    paidNow: Number(paidNow.toFixed(2)),
-    note: extensionNoteInput.value.trim()
-  });
-  recalcInvoiceTotals(invoice);
-  invoice.updatedAt = new Date().toISOString();
-  invoices[index] = invoice;
-  syncInvoiceCustomerHistory(invoice);
-  setStorageData(STORAGE_KEYS.invoices, invoices);
   closeModal(extensionModal);
   activeExtensionInvoiceId = null;
-  alert(`${mode === 'half' ? '15 günlük' : '1 aylıq'} artırma tətbiq olundu. Dəqiq əlavə borc: ${formatMoney(extraTotal)}${discount ? ` / Endirim: ${formatMoney(discount)}` : ''}${paidNow ? ` / Müştəri ödədi: ${formatMoney(paidNow)}` : ''}`);
+  alert(`${mode === 'half' ? '15 günlük' : '1 aylıq'} artırma tətbiq olundu. Əlavə borc: ${formatMoney(addedAmount)}${discount ? ` / Endirim: ${formatMoney(discount)}` : ''}${paidNow ? ` / Ödəniş: ${formatMoney(paidNow)}` : ''}`);
   renderAll();
 };
 
@@ -2311,31 +2190,21 @@ window.openInvoicePaymentModal = function(invoiceId) {
   openModal(invoicePaymentModal);
 };
 
-function saveInvoicePayment() {
-  const index = invoices.findIndex(item => String(item.id) === String(activeInvoicePaymentId));
-  if (index === -1) return;
+async function saveInvoicePayment() {
+  const invoice = invoices.find(item => String(item.id) === String(activeInvoicePaymentId));
+  if (!invoice) return;
   const amount = Number(invoicePaymentAmountInput.value || 0);
   if (amount <= 0) return alert('Məbləği düzgün yaz.');
   const date = invoicePaymentDateInput.value ? new Date(invoicePaymentDateInput.value).toISOString() : new Date().toISOString();
   const note = invoicePaymentNoteInput.value.trim();
-  const invoice = cloneData(invoices[index]);
-  invoice.paymentHistory = normalizePaymentHistory(invoice);
-  invoice.paymentHistory.unshift({
-    id: `pay-${Date.now()}`,
-    date,
-    amount: Number(amount.toFixed(2)),
-    note: note || `${invoice.invoiceNo || '-'} üzrə ödəniş`,
-    direction: 'in'
-  });
-  invoice.paidAmount = getInvoicePaidAmountFromHistory(invoice);
-  recalcInvoiceTotals(invoice);
-  invoice.updatedAt = new Date().toISOString();
-  invoices[index] = invoice;
-  syncInvoiceCustomerHistory(invoice);
-  setStorageData(STORAGE_KEYS.invoices, invoices);
-  renderInvoicePaymentHistory(invoice);
+  try {
+    await API.payments.add({ invoiceId: Number(invoice.id), amount, direction: 'In', date, note: note || 'Qaimə ödənişi' });
+  } catch (e) {
+    return alert(e.message || 'Ödəniş alınmadı.');
+  }
   invoicePaymentAmountInput.value = '';
   invoicePaymentNoteInput.value = '';
+  closeModal(invoicePaymentModal);
   renderAll();
 }
 
@@ -3175,97 +3044,78 @@ function getOpenDebtInvoices() {
     .sort((a, b) => Number(b.remainingDebt || 0) - Number(a.remainingDebt || 0));
 }
 
-function renderDebtsSection() {
+/* ===== Modul 7: Borclar + Depozit — SQL Server (API) ===== */
+async function renderDebtsSection() {
   const tbody = document.getElementById('debtTableBody');
   const summary = document.getElementById('debtSummaryGrid');
   if (!tbody || !summary) return;
-  const openDebts = getFilteredDebtInvoices();
-  const overdueDebts = openDebts.filter(invoice => getInvoiceStatus(invoice) === 'Gecikir');
-  const totalDebt = openDebts.reduce((sum, invoice) => sum + Number(invoice.remainingDebt || 0), 0);
-  const overdueDebtAmount = overdueDebts.reduce((sum, invoice) => sum + Number(invoice.remainingDebt || 0), 0);
-  const topCustomer = [...customers]
-    .map(customer => ({ customer, ledger: getCustomerLedger(customer) }))
-    .sort((a, b) => Number(b.ledger.debt || 0) - Number(a.ledger.debt || 0))[0];
-
-  summary.innerHTML = `
-    <div class="report-box"><h4>Açıq borclu qaimələr</h4><strong>${openDebts.length}</strong><small>Hazırda bağlanmamış borclu qaimələr</small></div>
-    <div class="report-box"><h4>Ümumi borc</h4><strong>${formatMoney(totalDebt)}</strong><small>Aktiv borcların cəmi</small></div>
-    <div class="report-box"><h4>Gecikən borc</h4><strong>${formatMoney(overdueDebtAmount)}</strong><small>${overdueDebts.length} qaimə gecikib${topCustomer && Number(topCustomer.ledger.debt || 0) > 0 ? ` / Ən çox borc: ${escapeHtml(topCustomer.customer.name)} (${formatMoney(topCustomer.ledger.debt)})` : ''}</small></div>
-  `;
-
-  if (!openDebts.length) {
-    tbody.innerHTML = '<tr><td colspan="7">Açıq borc yoxdur</td></tr>';
-    return;
+  tbody.innerHTML = '<tr><td colspan="7">Yüklənir…</td></tr>';
+  let list, debtors;
+  try {
+    [list, debtors] = await Promise.all([API.invoices.list('', 'open'), API.reports.debtors().catch(() => ({ rows: [] }))]);
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="7">Xəta: ' + escapeHtml(e.message || '') + '</td></tr>'; return;
   }
-
-  tbody.innerHTML = openDebts.map(invoice => {
-    const status = getInvoiceStatus(invoice);
-    const customer = getCustomerByInvoice(invoice);
-    const delayDays = status === 'Gecikir' ? Math.max(Math.round((new Date() - new Date(invoice.returnDate)) / 86400000), 0) : 0;
+  const openDebts = list.filter(i => Number(i.remainingDebt || 0) > 0).sort((a, b) => Number(b.remainingDebt || 0) - Number(a.remainingDebt || 0));
+  const overdueDebts = openDebts.filter(i => i.status === 'overdue');
+  const totalDebt = openDebts.reduce((s, i) => s + Number(i.remainingDebt || 0), 0);
+  const overdueDebtAmount = overdueDebts.reduce((s, i) => s + Number(i.remainingDebt || 0), 0);
+  const top = (debtors.rows || [])[0];
+  summary.innerHTML = `
+    <div class="report-box"><h4>Açıq borclu qaimələr</h4><strong>${openDebts.length}</strong><small>Bağlanmamış borclu qaimələr</small></div>
+    <div class="report-box"><h4>Ümumi borc</h4><strong>${formatMoney(totalDebt)}</strong><small>Aktiv borcların cəmi</small></div>
+    <div class="report-box"><h4>Gecikən borc</h4><strong>${formatMoney(overdueDebtAmount)}</strong><small>${overdueDebts.length} qaimə gecikib${top && Number(top.debt || 0) > 0 ? ` / Ən çox: ${escapeHtml(top.customerName)} (${formatMoney(top.debt)})` : ''}</small></div>`;
+  if (!openDebts.length) { tbody.innerHTML = '<tr><td colspan="7">Açıq borc yoxdur</td></tr>'; return; }
+  tbody.innerHTML = openDebts.map(inv => {
+    const overdue = inv.status === 'overdue';
+    const delayDays = overdue ? Math.max(-(inv.daysUntilReturn || 0), 0) : 0;
     const riskClass = delayDays >= 7 ? 'row-risk-high' : delayDays >= 1 ? 'row-risk-medium' : 'row-risk-low';
     return `
       <tr class="${riskClass}">
-        <td><strong>${escapeHtml(invoice.customer || customer?.name || '-')}</strong><div class="phone-mini">${escapeHtml(invoice.phone || customer?.phone || '-')}</div></td>
-        <td><strong>${escapeHtml(invoice.invoiceNo || '-')}</strong><div class="invoice-link-mini">Yaş: ${getInvoiceAgeDays(invoice)} gün</div></td>
-        <td>${formatDate(getInvoiceEffectiveDate(invoice))}</td>
-        <td>${formatDate(invoice.returnDate)}</td>
-        <td>${status === 'Gecikir' ? `<span class="badge red">${delayDays} gün</span>` : `<span class="badge green">vaxtında</span>`}</td>
-        <td><strong>${formatMoney(invoice.remainingDebt)}</strong></td>
-        <td>
-          <div class="action-cell">
-            <button class="action-btn pay" onclick="openInvoicePaymentModal('${invoice.id}')">Ödəniş et</button>
-            <button class="action-btn edit" onclick="editInvoice('${invoice.id}')">Qaiməyə bax</button>
-            <button class="action-btn print" onclick="switchToCustomerFromInvoice('${invoice.id}')">Müştəriyə keç</button>
-          </div>
-        </td>
-      </tr>
-    `;
+        <td><strong>${escapeHtml(inv.customerName || '-')}</strong><div class="phone-mini">${escapeHtml(inv.phone || '-')}</div></td>
+        <td><strong>${escapeHtml(inv.invoiceNo || '-')}</strong></td>
+        <td>${formatDate(inv.invoiceDate)}</td>
+        <td>${formatDate(inv.returnDate)}</td>
+        <td>${overdue ? `<span class="badge red">${delayDays} gün</span>` : `<span class="badge green">vaxtında</span>`}</td>
+        <td><strong>${formatMoney(inv.remainingDebt)}</strong></td>
+        <td><div class="action-cell"><button class="action-btn pay" onclick="openInvoicePaymentModal('${inv.id}')">Ödəniş et</button><button class="action-btn edit" onclick="editInvoice('${inv.id}')">Qaiməyə bax</button></div></td>
+      </tr>`;
   }).join('');
 }
 
-function renderDepositsSection() {
+async function renderDepositsSection() {
   const tbody = document.getElementById('depositTableBody');
   const summary = document.getElementById('depositSummaryGrid');
   if (!tbody || !summary) return;
-
-  // Yalnız depoziti >0 olan müştərilər göstərilir (depozit borc deyil)
-  const rows = getFilteredDepositRows().filter(row => Number(row.deposit || 0) > 0).sort((a, b) => b.deposit - a.deposit || b.debt - a.debt);
-
-  const totalDeposit = rows.reduce((sum, row) => sum + row.deposit, 0);
-  const usableDepositCount = rows.filter(row => row.deposit > 0 && row.debt > 0).length;
-  const pureDepositCount = rows.filter(row => row.deposit > 0 && row.debt <= 0).length;
-
-  const activityInRange = rows.reduce((sum, row) => sum + row.rangeActivityCount, 0);
+  tbody.innerHTML = '<tr><td colspan="7">Yüklənir…</td></tr>';
+  let data;
+  try { data = await API.customers.list(); }
+  catch (e) { tbody.innerHTML = '<tr><td colspan="7">Xəta: ' + escapeHtml(e.message || '') + '</td></tr>'; return; }
+  const rows = data
+    .map(c => ({ id: c.id, name: c.name, phone: c.phone || '', extraPhone: c.extraPhone || '', deposit: Number(c.deposit || 0), debt: Number(c.debt || 0), activeInvoices: Number(c.activeInvoiceCount || 0) }))
+    .filter(r => r.deposit > 0)
+    .sort((a, b) => b.deposit - a.deposit || b.debt - a.debt);
+  const totalDeposit = rows.reduce((s, r) => s + r.deposit, 0);
+  const usable = rows.filter(r => r.deposit > 0 && r.debt > 0).length;
+  const pure = rows.filter(r => r.deposit > 0 && r.debt <= 0).length;
   summary.innerHTML = `
-    <div class="report-box"><h4>Ümumi depozit</h4><strong>${formatMoney(totalDeposit)}</strong><small>Bütün müştərilər üzrə qalan depozit</small></div>
-    <div class="report-box"><h4>Depozitlə bağlana bilən borclar</h4><strong>${usableDepositCount}</strong><small>Həm borcu, həm də depoziti olan müştərilər</small></div>
-    <div class="report-box"><h4>Təmiz depozit qalığı</h4><strong>${pureDepositCount}</strong><small>Borcsuz, yalnız depozit qalan müştərilər / Filtr üzrə ${activityInRange} əməliyyat</small></div>
-  `;
-
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7">Depozit məlumatı yoxdur</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = rows.map(row => {
-    const balanceClass = row.net > 0 ? 'balance-positive' : row.net < 0 ? 'balance-negative' : 'balance-neutral';
+    <div class="report-box"><h4>Ümumi depozit</h4><strong>${formatMoney(totalDeposit)}</strong><small>Qalan depozit</small></div>
+    <div class="report-box"><h4>Depozitlə bağlana bilən</h4><strong>${usable}</strong><small>Borcu+depoziti olan</small></div>
+    <div class="report-box"><h4>Təmiz depozit qalığı</h4><strong>${pure}</strong><small>Yalnız depozit qalan</small></div>`;
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7">Depozit məlumatı yoxdur</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => {
+    const net = r.deposit - r.debt;
+    const cls = net > 0 ? 'balance-positive' : net < 0 ? 'balance-negative' : 'balance-neutral';
     return `
       <tr>
-        <td><strong>${escapeHtml(row.customer.name || '-')}</strong></td>
-        <td>${escapeHtml(row.customer.phone || '-')}<div class="phone-mini">${escapeHtml(row.customer.extraPhone || '')}</div></td>
-        <td><strong>${formatMoney(row.deposit)}</strong></td>
-        <td>${formatMoney(row.debt)}</td>
-        <td><span class="${balanceClass}">${formatMoney(Math.abs(row.net))}${row.net < 0 ? ' borc qalır' : row.net > 0 ? ' artıq depozit' : ''}</span></td>
-        <td>${row.activeInvoices}${(row.rangeAdded > 0 || row.rangeRemoved > 0) && Math.abs(row.rangeAdded - row.rangeRemoved) > 0.009 ? `<div class="phone-mini">+${formatMoney(row.rangeAdded)} / -${formatMoney(row.rangeRemoved)}</div>` : ''}</td>
-        <td>
-          <div class="action-cell">
-            <button class="action-btn deposit-pay" onclick="openCustomerTransactionModal('${row.customer.id}','deposit-to-debt')">Depozitlə ödə</button>
-            <button class="action-btn edit" onclick="toggleCustomerHistory('${row.customer.id}'); switchSection('customersSection', document.querySelector('[data-section="customersSection"]'))">Tarixçə</button>
-            <button class="action-btn print" onclick="openCustomerTransactionModal('${row.customer.id}','deposit-remove')">Depozit çıx</button>
-          </div>
-        </td>
-      </tr>
-    `;
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        <td>${escapeHtml(r.phone)}<div class="phone-mini">${escapeHtml(r.extraPhone)}</div></td>
+        <td><strong>${formatMoney(r.deposit)}</strong></td>
+        <td>${formatMoney(r.debt)}</td>
+        <td><span class="${cls}">${formatMoney(Math.abs(net))}${net < 0 ? ' borc qalır' : net > 0 ? ' artıq depozit' : ''}</span></td>
+        <td>${r.activeInvoices}</td>
+        <td><div class="action-cell"><button class="action-btn deposit-pay" onclick="openCustomerTransactionModal('${r.id}','deposit-to-debt')">Depozitlə ödə</button><button class="action-btn print" onclick="openCustomerTransactionModal('${r.id}','deposit-remove')">Depozit çıx</button></div></td>
+      </tr>`;
   }).join('');
 }
 
@@ -3364,6 +3214,40 @@ window.printInvoice = async function(invoiceId){
     + `</body></html>`);
   w.document.close(); w.focus(); setTimeout(() => w.print(), 250);
 };
+
+// ===== Modul 5: Qaytarma — SQL Server (API) override =====
+let returnInvoiceData = null;
+window.openReturnModal = async function(invoiceId){
+  activeReturnInvoiceId = invoiceId;
+  if (returnItemsBox) returnItemsBox.innerHTML = '<div class="simple-item-sub">Yüklənir…</div>';
+  openModal(returnModal);
+  let inv;
+  try { inv = await API.invoices.get(invoiceId); }
+  catch (e) { if (returnItemsBox) returnItemsBox.innerHTML = '<div class="simple-item-sub">Xəta: ' + escapeHtml(e.message || '') + '</div>'; return; }
+  returnInvoiceData = inv;
+  if (returnModalTitle) returnModalTitle.textContent = `Qaytarma — ${inv.invoiceNo || '-'}`;
+  const rows = (inv.items || [])
+    .filter(it => it.isReturnable && (Number(it.quantity || 0) - Number(it.returnedQuantity || 0)) > 0)
+    .map(it => {
+      const remaining = Math.max(Number(it.quantity || 0) - Number(it.returnedQuantity || 0), 0);
+      return `<div class="return-item"><h4>${escapeHtml(it.label || it.category)}</h4><div class="return-row"><div><div>Miqdar: ${it.quantity}</div><div>Qalıq: ${remaining}</div></div><div class="form-group"><label>Qaytarılacaq miqdar</label><input type="number" min="0" max="${remaining}" step="1" value="0" data-return-qty="${it.id}" /></div></div></div>`;
+    }).join('');
+  if (returnItemsBox) returnItemsBox.innerHTML = rows || '<div class="simple-item-sub">Qaytarıla bilən mal yoxdur.</div>';
+};
+function saveReturnOperation(){
+  if (!returnInvoiceData) return;
+  const items = [];
+  (returnInvoiceData.items || []).forEach(it => {
+    const qi = returnItemsBox.querySelector(`[data-return-qty="${it.id}"]`);
+    if (!qi) return;
+    const qty = Number(qi.value || 0);
+    if (qty > 0) items.push({ invoiceItemId: Number(it.id), quantity: qty });
+  });
+  if (!items.length) return alert('Ən azı 1 qaytarma yaz.');
+  API.returns.partial(returnInvoiceData.id, { items, refundAmount: 0, note: '' })
+    .then(() => { closeModal(returnModal); returnInvoiceData = null; alert('Qaytarma tətbiq edildi.'); renderAll(); })
+    .catch(e => alert(e.message || 'Qaytarma alınmadı.'));
+}
 
 // Apply v19 overrides after page load.
 try { renderAll(); } catch (e) { console.error('v19 render refresh error', e); }

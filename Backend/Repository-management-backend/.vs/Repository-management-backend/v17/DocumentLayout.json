@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\wwwroot\\assets\\js\\dashboard.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\wwwroot\\assets\\js\\dashboard.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\validators\\createuserdtovalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\validators\\createuserdtovalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -86,7 +94,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -94,19 +102,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "seed-data.js",
-              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
-              "RelativeDocumentMoniker": "Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
-              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
-              "RelativeToolTip": "Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
-              "ViewState": "AQIAAHYAAAAAAAAAAAAcwAAAAAAAAAAA",
+              "DocumentIndex": 0,
+              "Title": "dashboard.js",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\dashboard.js",
+              "RelativeDocumentMoniker": "Repository-management-backend\\wwwroot\\assets\\js\\dashboard.js",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\dashboard.js",
+              "RelativeToolTip": "Repository-management-backend\\wwwroot\\assets\\js\\dashboard.js",
+              "ViewState": "AQIAANQMAAAAAAAAAAAiwAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-06-26T08:58:22.616Z"
+              "WhenOpened": "2026-06-27T10:29:47.552Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 1,
+              "Title": "CreateUserDtoValidator.cs",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Validators\\CreateUserDtoValidator.cs",
+              "RelativeDocumentMoniker": "Repository-management-backend\\Validators\\CreateUserDtoValidator.cs",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Validators\\CreateUserDtoValidator.cs",
+              "RelativeToolTip": "Repository-management-backend\\Validators\\CreateUserDtoValidator.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-27T10:29:43.745Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "InventoryController.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\InventoryController.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\InventoryController.cs",
@@ -118,7 +140,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "CustomersController.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\CustomersController.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\CustomersController.cs",
@@ -130,7 +152,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "Create.cshtml",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Invoice\\Create.cshtml",
               "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Invoice\\Create.cshtml",
@@ -142,7 +164,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 11,
               "Title": "UsersController.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\UsersController.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\UsersController.cs",
@@ -154,7 +176,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 12,
               "Title": "AccountController.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\AccountController.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\AccountController.cs",
@@ -166,7 +188,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 13,
               "Title": "DbInitializer.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\DbInitializer.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Data\\DbInitializer.cs",
@@ -178,7 +200,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 17,
               "Title": "AppDbContext.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContext.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Data\\AppDbContext.cs",
@@ -190,7 +212,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "Enums.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Models\\Enums\\Enums.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Models\\Enums\\Enums.cs",
@@ -202,7 +224,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Program.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Program.cs",
@@ -215,7 +237,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
+              "Title": "seed-data.js",
+              "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
+              "RelativeDocumentMoniker": "Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
+              "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
+              "RelativeToolTip": "Repository-management-backend\\wwwroot\\assets\\js\\seed-data.js",
+              "ViewState": "AQIAAHYAAAAAAAAAAAAcwAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-06-26T08:58:22.616Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Home\\Index.cshtml",
               "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Home\\Index.cshtml",
@@ -227,7 +261,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "CurrentUserService.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Security\\CurrentUserService.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Security\\CurrentUserService.cs",
@@ -239,7 +273,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 16,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\appsettings.json",
               "RelativeDocumentMoniker": "Repository-management-backend\\appsettings.json",
@@ -251,7 +285,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 14,
               "Title": "Branch.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Models\\Entities\\Branch.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Models\\Entities\\Branch.cs",
@@ -263,7 +297,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "HomeController.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Controllers\\HomeController.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Controllers\\HomeController.cs",
@@ -275,7 +309,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 20,
               "Title": "20260622180918_InitialCreate.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Migrations\\20260622180918_InitialCreate.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Migrations\\20260622180918_InitialCreate.cs",
@@ -287,7 +321,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 15,
               "Title": "AppDbContextFactory.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContextFactory.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Data\\AppDbContextFactory.cs",
@@ -299,7 +333,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 19,
               "Title": "_Header.cshtml",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Shared\\_Header.cshtml",
               "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Shared\\_Header.cshtml",
@@ -311,7 +345,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 18,
               "Title": "_Layout.cshtml",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Views\\Shared\\_Layout.cshtml",
               "RelativeDocumentMoniker": "Repository-management-backend\\Views\\Shared\\_Layout.cshtml",

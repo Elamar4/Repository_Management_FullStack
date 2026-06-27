@@ -23,13 +23,26 @@ namespace Repository_management_backend.Services
         public async Task<List<UserDto>> GetAllAsync()
         {
             var users = await _repo.GetAllAsync();
-            return _mapper.Map<List<UserDto>>(users);
+            var list = _mapper.Map<List<UserDto>>(users);
+            foreach (var u in list) u.IsOnline = ComputeOnline(u.LastLoginAt, u.LastLogoutAt);
+            return list;
         }
 
         public async Task<UserDto?> GetByIdAsync(int id)
         {
             var user = await _repo.GetByIdAsync(id);
-            return user == null ? null : _mapper.Map<UserDto>(user);
+            if (user == null) return null;
+            var dto = _mapper.Map<UserDto>(user);
+            dto.IsOnline = ComputeOnline(dto.LastLoginAt, dto.LastLogoutAt);
+            return dto;
+        }
+
+        // Online = son giriş var, çıxışdan sonradır və cookie sessiya pəncərəsindədir (8 saat)
+        private static bool ComputeOnline(DateTime? login, DateTime? logout)
+        {
+            if (login == null) return false;
+            if (logout != null && logout >= login) return false;
+            return login.Value >= DateTime.UtcNow.AddHours(-8);
         }
 
         public async Task<ServiceResult<UserDto>> CreateAsync(CreateUserDto dto)

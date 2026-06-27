@@ -13,5 +13,8 @@ namespace Repository_management_backend.Models.DTOs.Users
         public string? BranchName { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? LastLoginAt { get; set; }
+        public DateTime? LastLogoutAt { get; set; }
+        public bool IsOnline { get; set; }   // sistemdə aktiv (login > logout və sessiya pəncərəsində)
     }
 }

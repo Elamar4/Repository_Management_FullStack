@@ -101,20 +101,24 @@
   }
 
   // İstifadəçilər bölməsi (yalnız Admin görür)
-  function renderUsers() {
+  async function renderUsers() {
     var tbody = document.getElementById("usersTableBody");
-    if (!tbody || !DB.getUsers) return;
-    var users = DB.getUsers();
+    if (!tbody || !window.API) return;
+    tbody.innerHTML = '<tr><td colspan="7">Yüklənir…</td></tr>';
+    var users;
+    try { users = await API.users.list(); }
+    catch (e) { tbody.innerHTML = '<tr><td colspan="7">Xəta: ' + esc(e.message || "") + "</td></tr>"; return; }
+    var roleLbl = { Admin: "Admin", Manager: "Menecer", User: "İşçi" };
     tbody.innerHTML = users.map(function (u) {
-      var status = u.active
+      var status = u.isOnline
         ? '<span class="inventory-positive">Aktiv</span>'
         : '<span class="inventory-low">Deaktiv</span>';
       return (
         "<tr>" +
         "<td><strong>" + esc(u.name) + "</strong></td>" +
         "<td>" + esc(u.username) + "</td>" +
-        "<td>" + esc(DB.roleLabel(u.role)) + "</td>" +
-        "<td>" + esc(DB.branchLabel ? DB.branchLabel(u.branch) : (u.branch || "-")) + "</td>" +
+        "<td>" + esc(roleLbl[u.role] || u.role) + "</td>" +
+        "<td>" + esc(u.branchName || "-") + "</td>" +
         "<td>" + esc(u.phone || "-") + "</td>" +
         "<td>" + status + "</td>" +
         '<td><div class="action-cell"><button class="action-btn delete" data-del-user="' + u.id + '">Sil</button></div></td>' +
@@ -125,22 +129,17 @@
     tbody.querySelectorAll("[data-del-user]").forEach(function (b) {
       b.addEventListener("click", function () {
         var id = b.getAttribute("data-del-user");
-        var u = DB.getUser ? DB.getUser(id) : null;
-        if (!confirm((u ? u.name : "İşçi") + " silinsin?")) return;
-        var res = DB.deleteUser(id);
-        if (!res || !res.ok) {
-          alert(res && res.reason === "self" ? "Öz hesabınızı silə bilməzsiniz." : "Silinmədi.");
-          return;
-        }
-        renderUsers();
+        if (!confirm("İşçi silinsin?")) return;
+        API.users.remove(id).then(function () { renderUsers(); })
+          .catch(function (e) { alert(e.message || "Silinmədi."); });
       });
     });
 
     var grid = document.getElementById("usersSummaryGrid");
     if (grid) {
       var total = users.length;
-      var active = users.filter(function (u) { return u.active; }).length;
-      var admins = users.filter(function (u) { return u.role === "admin"; }).length;
+      var active = users.filter(function (u) { return u.isOnline; }).length;
+      var admins = users.filter(function (u) { return u.role === "Admin"; }).length;
       grid.innerHTML =
         '<div class="report-box"><h4>Ümumi işçi</h4><p>' + total + "</p></div>" +
         '<div class="report-box"><h4>Aktiv</h4><p>' + active + "</p></div>" +
@@ -186,23 +185,21 @@
     document.getElementById("nuClose").onclick = close;
     document.getElementById("nuSave").onclick = function () {
       var branchEl = document.getElementById("nuBranch");
-      var res = DB.addUser({
-        name: document.getElementById("nuName").value,
-        username: document.getElementById("nuUsername").value,
+      var branchMap = { merdekan: 1, pirsagi: 2, baku: 3 };
+      var roleMap = { admin: "Admin", manager: "Manager", user: "User" };
+      var bv = branchEl ? branchEl.value : "";
+      var dto = {
+        name: document.getElementById("nuName").value.trim(),
+        username: document.getElementById("nuUsername").value.trim(),
         password: document.getElementById("nuPassword").value,
-        role: document.getElementById("nuRole").value,
-        branch: branchEl ? branchEl.value : undefined,
-        phone: document.getElementById("nuPhone").value,
-        active: document.getElementById("nuActive").checked,
-      });
-      if (!res || !res.ok) {
-        alert(res && res.reason === "duplicate"
-          ? "Bu istifadəçi adı artıq mövcuddur."
-          : "Ad, istifadəçi adı və şifrə mütləqdir.");
-        return;
-      }
-      close();
-      renderUsers();
+        role: roleMap[document.getElementById("nuRole").value] || "User",
+        branchId: branchMap[bv] || Number(bv) || 0,
+        phone: document.getElementById("nuPhone").value.trim(),
+        isActive: document.getElementById("nuActive").checked,
+      };
+      API.users.create(dto)
+        .then(function () { close(); renderUsers(); })
+        .catch(function (e) { alert(e.message || "Yadda saxlanmadı."); });
     };
     var nameEl = document.getElementById("nuName");
     if (nameEl) nameEl.focus();

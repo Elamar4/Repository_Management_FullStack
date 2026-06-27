@@ -75,6 +75,10 @@ namespace Repository_management_backend.Controllers
                 return View(model);
             }
 
+            // Status üçün: uğurlu girişdə son giriş vaxtı SQL-ə yazılır
+            user.LastLoginAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -97,6 +101,17 @@ namespace Repository_management_backend.Controllers
         // GET: /Account/Logout  (sadə keçid üçün GET; istəsəniz POST-a keçirin)
         public async Task<IActionResult> Logout()
         {
+            // Status üçün: çıxışda son çıxış vaxtı SQL-ə yazılır
+            var idStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(idStr, out var uid))
+            {
+                var current = await _db.Users.FirstOrDefaultAsync(u => u.Id == uid);
+                if (current != null)
+                {
+                    current.LastLogoutAt = DateTime.UtcNow;
+                    await _db.SaveChangesAsync();
+                }
+            }
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }

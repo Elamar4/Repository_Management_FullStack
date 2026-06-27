@@ -14,6 +14,8 @@ namespace Repository_management_backend.Models.Entities
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }                   // son redaktə vaxtı
+        public DateTime? LastLoginAt { get; set; }                 // son giriş vaxtı
+        public DateTime? LastLogoutAt { get; set; }                // son çıxış vaxtı
 
         // Filial
         public int BranchId { get; set; }

@@ -66,9 +66,10 @@ function getStandardProducts(){
   return defaults.map(def => ({...def, ...(saved.find(x => x.id === def.id) || {})}));
 }
 function getStandardPrice(category, fallback){ const item=getStandardProducts().find(x=>x.category===category); return item ? Number(item.price || 0) : fallback; }
+// Dəmir dirək ölçüləri SQL-dən (Kind=Pole) hydrate olunur — aşağıdakı keşdən gəlir.
+let poleCatalogCache = [];
 function getPoleCategories(){
-  const saved = getStorageData(STORAGE_KEYS.poleCategories, []);
-  return Array.isArray(saved) ? saved : [];
+  return poleCatalogCache.slice();
 }
 
 function formatMoney(value) {
@@ -298,27 +299,7 @@ const remainingDebt = document.getElementById('remainingDebt');
 const saveInvoiceBtnTop = document.getElementById('saveInvoiceBtnTop');
 
 function seedInitialData() {
-  if (!customers.length) {
-    customers = [
-      { id: String(Date.now()), name: 'Rəşad Məmmədov', phone: '050 555 11 22', extraPhone: '051 111 22 33', address: 'Bakı', history: [] },
-      { id: String(Date.now() + 1), name: 'Kamran İnşaat', phone: '051 444 66 88', extraPhone: '', address: 'Xırdalan', history: [] }
-    ];
-    setStorageData(STORAGE_KEYS.customers, customers);
-  }
-
-  if (!extraCategories.length) {
-    extraCategories = [
-      { id: 'extra-default-1', name: 'Əlavə alət', price: 10, unit: 'ədəd', note: 'Əlavə kateqoriya nümunəsi' }
-    ];
-    setStorageData(STORAGE_KEYS.extraCategories, extraCategories);
-  }
-
-  if (!serviceCategories.length) {
-    serviceCategories = [
-      { id: 'service-default-1', name: 'Quraşdırma xidməti', price: 25, unit: 'xidmət', note: 'Bir dəfəlik xidmət' }
-    ];
-    setStorageData(STORAGE_KEYS.serviceCategories, serviceCategories);
-  }
+  /* Seed silindi — bütün data API/SQL Server-dən gəlir (aşağıda hydrate olunur). */
 }
 
 function setTodayDefaults() {
@@ -531,10 +512,15 @@ function saveCustomer() {
   const exists = customers.find(customer => customer.name.toLowerCase() === name.toLowerCase() || customer.phone.replace(/\s+/g, '') === phone.replace(/\s+/g, ''));
   if (exists) return alert('Bu müştəri artıq mövcuddur.');
 
-  const customer = { id: `c-${Date.now()}`, name, phone, extraPhone, address, history: [] };
+  saveCustomerViaApi({ name, phone, extraPhone, address });
+}
+async function saveCustomerViaApi(data) {
+  let created;
+  try { created = await API.customers.create({ name: data.name, phone: data.phone, extraPhone: data.extraPhone, address: data.address, note: '' }); }
+  catch (e) { return alert(e.message || 'Müştəri yaradılmadı.'); }
+  const customer = { id: created.id, name: created.name, phone: created.phone || '', extraPhone: created.extraPhone || '', address: created.address || '', history: [] };
   customers.push(customer);
   customers.sort((a, b) => a.name.localeCompare(b.name, 'az'));
-  setStorageData(STORAGE_KEYS.customers, customers);
   customerSearchInput.value = '';
   renderCustomerList(customers);
   selectCustomer(customer);
@@ -962,20 +948,40 @@ function saveInvoice() {
   commitInvoice(invoice);
 }
 
-function commitInvoice(invoice) {
-  if (editInvoiceId) {
-    const index = invoices.findIndex(item => String(item.id) === String(editInvoiceId));
-    if (index === -1) return alert('Edit ediləcək qaimə tapılmadı.');
-    invoices[index] = invoice;
-    setStorageData(STORAGE_KEYS.invoices, invoices);
-    syncInvoiceCustomerHistory(invoice);
-    alert('Qaimə yeniləndi.');
-  } else {
-    invoices.unshift(invoice);
-    setStorageData(STORAGE_KEYS.invoices, invoices);
-    syncInvoiceCustomerHistory(invoice);
-    alert('Qaimə yadda saxlanıldı.');
+async function commitInvoice(invoice) {
+  const num = v => (v === '' || v === null || v === undefined) ? null : Number(v);
+  const dto = {
+    customerId: Number(invoice.customerId) || 0,
+    phone: invoice.phone || null,
+    extraPhone: invoice.extraPhone || null,
+    address: invoice.address || null,
+    note: invoice.note || null,
+    invoiceDate: invoice.invoiceDate,
+    returnDate: invoice.returnDate,
+    depositAmount: Number(invoice.depositAmount || 0),
+    paidAmount: Number(invoice.paidAmount || 0),
+    items: (invoice.items || []).map(it => ({
+      category: it.category || '', label: it.label || null, variantId: it.variantId || null,
+      size: it.size || null, unit: it.unit || null,
+      quantity: Number(it.quantity || 0), customPrice: Number(it.customPrice || 0), subtotal: Number(it.subtotal || 0),
+      note: it.note || null,
+      isReturnable: it.isReturnable !== false, isRecurring: it.isRecurring !== false, isFixedFee: !!it.isFixedFee,
+      rentMode: it.rentMode || null, dueDate: it.dueDate || null, dayCount: num(it.dayCount), dailyPrice: num(it.dailyPrice),
+      lesaHeadCount: num(it.lesaHeadCount), lesaHeadPrice: num(it.lesaHeadPrice), lesaLongRodCount: num(it.lesaLongRodCount),
+      lesaShortRodCount: num(it.lesaShortRodCount), lesaFreeTaxtaCount: num(it.lesaFreeTaxtaCount),
+      lesaExtraTaxtaCount: num(it.lesaExtraTaxtaCount), lesaExtraTaxtaPrice: num(it.lesaExtraTaxtaPrice),
+      headCount: num(it.headCount != null ? it.headCount : it.tekerliHeadCount), rodCount: num(it.rodCount != null ? it.rodCount : it.tekerliRodCount),
+      vilkaCount: num(it.vilkaCount), boardCount: num(it.boardCount), extraBoardCount: num(it.extraBoardCount), extraBoardPrice: num(it.extraBoardPrice),
+      poleCategoryId: it.poleCategoryId ? Number(it.poleCategoryId) : null, palesCount: num(it.palesCount)
+    }))
+  };
+  try {
+    if (editInvoiceId) await API.invoices.update(editInvoiceId, { id: Number(editInvoiceId), ...dto });
+    else await API.invoices.create(dto);
+  } catch (e) {
+    return alert(e.message || 'Qaimə yadda saxlanmadı.');
   }
+  alert(editInvoiceId ? 'Qaimə yeniləndi.' : 'Qaimə yadda saxlanıldı.');
   window.location.href = '/Home/Index';
 }
 
@@ -1143,6 +1149,25 @@ renderItems();
 renderCustomerList(customers);
 loadInvoiceForEdit();
 
+// ===== Modul 4b: SQL-dən hydrate (müştərilər + kateqoriyalar) =====
+if (window.API) {
+  Promise.all([
+    API.customers.list().catch(() => []),
+    API.categories.list('Extra').catch(() => []),
+    API.categories.list('Service').catch(() => []),
+    API.categories.list('Pole').catch(() => [])
+  ]).then(([cs, ex, sv, po]) => {
+    customers = cs.map(c => ({ id: c.id, name: c.name, phone: c.phone || '', extraPhone: c.extraPhone || '', address: c.address || '', history: [] }))
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'az'));
+    extraCategories = ex.map(d => ({ id: d.id, name: d.name, price: Number(d.price || 0), unit: d.unit || '', note: d.note || '', type: d.rentType === 'Daily' ? 'daily' : 'monthly' }));
+    serviceCategories = sv.map(d => ({ id: d.id, name: d.name, price: Number(d.price || 0), unit: d.unit || '', note: d.note || '', type: d.rentType === 'Daily' ? 'daily' : 'monthly' }));
+    poleCatalogCache = po.map(d => ({ id: d.id, name: d.name, price: Number(d.price || 0), unit: d.unit || 'ədəd' }));
+    poleCategories = poleCatalogCache.slice();
+    renderCustomerList(customers);
+    try { if (typeof renderCategorySelect === 'function') renderCategorySelect(); } catch (e) {}
+  });
+}
+
 
 /* ===== v7 component-based rental overrides ===== */
 function buildLesaComponents(data) {
@@ -1309,23 +1334,26 @@ function buildInvoicePayload() {
   };
 }
 
-function loadInvoiceForEdit() {
+async function loadInvoiceForEdit() {
   if (!editInvoiceId) return;
-  const invoice = invoices.find(item => String(item.id) === String(editInvoiceId));
-  if (!invoice) return;
+  let invoice;
+  try { invoice = await API.invoices.get(editInvoiceId); }
+  catch (e) { alert(e.message || 'Redaktə ediləcək qaimə tapılmadı.'); return; }
   pageHeading.textContent = 'Qaiməni edit et';
   pageSubHeading.textContent = `${invoice.invoiceNo} nömrəli qaimə`;
-  invoiceDate.value = invoice.invoiceDate || '';
+  invoiceDate.value = (invoice.invoiceDate || '').slice(0, 10);
   invoiceNo.value = invoice.invoiceNo || '';
   selectedCustomerId = invoice.customerId || '';
-  selectedCustomerName.value = invoice.customer || '';
+  selectedCustomerName.value = invoice.customerName || '';
   customerPhone.value = invoice.phone || '';
   if (customerExtraPhone) customerExtraPhone.value = invoice.extraPhone || '';
   customerAddress.value = invoice.address || '';
   invoiceNote.value = invoice.note || '';
-  returnDate.value = invoice.returnDate || '';
-  paidAmount.value = Number(getInvoicePaidAmountFromHistory(invoice) || 0);
+  returnDate.value = (invoice.returnDate || '').slice(0, 10);
+  paidAmount.value = Number(invoice.paidAmount || 0);
   depositAmount.value = Number(invoice.depositAmount || 0);
+  if (totalAmount) totalAmount.value = Number(invoice.totalAmount || 0);
+  if (remainingDebt) remainingDebt.value = Number(invoice.remainingDebt || 0);
   items = cloneData(invoice.items || []);
   renderItems();
 }
