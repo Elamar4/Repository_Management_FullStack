@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Repository_management_backend.Models.Entities;
+using Repository_management_backend.Models.Enums;
 using System.Security.Claims;
 
 namespace Repository_management_backend.Data
@@ -181,6 +182,91 @@ namespace Repository_management_backend.Data
                 new Branch { Id = 2, Code = "pirsagi", Name = "Pirşağı filialı", IsActive = true },
                 new Branch { Id = 3, Code = "baku", Name = "Bakı Mərkəz filialı", IsActive = true }
             );
+
+            // ---------------- Seed: Standart mallar (hər filial üçün) ----------------
+            // Id-lər: filial1 → 1-5, filial2 → 6-10, filial3 → 11-15
+            var standardGoods = new (string Name, decimal Price, string Unit, RentType Rent)[]
+            {
+                ("Lesa",          50m, "ədəd", RentType.Monthly),
+                ("Təkərli lesa",   5m, "ədəd", RentType.Daily),
+                ("Dəmir dirək",   30m, "ədəd", RentType.Monthly),
+                ("Taxta",         10m, "ədəd", RentType.Monthly),
+                ("Vibrator",       8m, "ədəd", RentType.Daily),
+            };
+            var categorySeed = new List<Category>();
+            for (int branch = 1; branch <= 3; branch++)
+                for (int j = 0; j < standardGoods.Length; j++)
+                {
+                    var g = standardGoods[j];
+                    categorySeed.Add(new Category
+                    {
+                        Id = (branch - 1) * standardGoods.Length + j + 1,
+                        BranchId = branch,
+                        Kind = CategoryKind.Standard,
+                        Name = g.Name,
+                        Price = g.Price,
+                        Unit = g.Unit,
+                        RentType = g.Rent
+                    });
+                }
+            b.Entity<Category>().HasData(categorySeed);
+
+            // ---------------- Seed: Anbar qalığı (filial 1) ----------------
+            b.Entity<InventoryStock>().HasData(
+                new InventoryStock { Id = 1, BranchId = 1, Name = "Lesa", TotalCount = 20m },
+                new InventoryStock { Id = 2, BranchId = 1, Name = "Taxta", TotalCount = 100m }
+            );
+
+            // ---------------- Seed: Test müştərilər ----------------
+            var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            b.Entity<Customer>().HasData(
+                new Customer { Id = 1, BranchId = 1, Name = "Test Müştəri 1", Phone = "+994 50 100 10 01", CreatedAt = seedDate },
+                new Customer { Id = 2, BranchId = 1, Name = "Test Müştəri 2", Phone = "+994 50 100 10 02", CreatedAt = seedDate },
+                new Customer { Id = 3, BranchId = 2, Name = "Test Müştəri 3", Phone = "+994 50 100 10 03", CreatedAt = seedDate },
+                new Customer { Id = 4, BranchId = 2, Name = "Test Müştəri 4", Phone = "+994 50 100 10 04", CreatedAt = seedDate },
+                new Customer { Id = 5, BranchId = 3, Name = "Test Müştəri 5", Phone = "+994 50 100 10 05", CreatedAt = seedDate },
+                new Customer { Id = 6, BranchId = 3, Name = "Test Müştəri 6", Phone = "+994 50 100 10 06", CreatedAt = seedDate }
+            );
+
+            // ---------------- Seed: Nümunə qaimə (filial 1, müştəri 1) ----------------
+            var invDate = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+            var retDate = new DateTime(2025, 7, 1, 0, 0, 0, DateTimeKind.Utc);
+            b.Entity<Invoice>().HasData(new Invoice
+            {
+                Id = 1,
+                InvoiceNo = "0001",
+                BranchId = 1,
+                CustomerId = 1,
+                CustomerNameSnapshot = "Test Müştəri 1",
+                Phone = "+994 50 100 10 01",
+                InvoiceDate = invDate,
+                ReturnDate = retDate,
+                TotalAmount = 500m,
+                PaidAmount = 200m,
+                DepositAmount = 100m,
+                RemainingDebt = 300m,
+                IsClosed = false,
+                CreatedAt = invDate,
+                UpdatedAt = invDate
+            });
+
+            b.Entity<InvoiceItem>().HasData(
+                new InvoiceItem { Id = 1, InvoiceId = 1, Category = "Lesa", Unit = "ədəd", Quantity = 5m, CustomPrice = 50m, Subtotal = 250m, IsReturnable = true, IsRecurring = true, IsFixedFee = false, ReturnedQuantity = 0m },
+                new InvoiceItem { Id = 2, InvoiceId = 1, Category = "Taxta", Unit = "ədəd", Quantity = 25m, CustomPrice = 10m, Subtotal = 250m, IsReturnable = true, IsRecurring = true, IsFixedFee = false, ReturnedQuantity = 0m }
+            );
+
+            b.Entity<CustomerLedgerEntry>().HasData(new CustomerLedgerEntry
+            {
+                Id = 1,
+                CustomerId = 1,
+                InvoiceId = 1,
+                Date = invDate,
+                Type = "Mal götürüb (qaimə #0001)",
+                Amount = 500m,
+                DebtChange = 300m,
+                DepositChange = 100m,
+                Source = "invoice"
+            });
         }
     }
 }

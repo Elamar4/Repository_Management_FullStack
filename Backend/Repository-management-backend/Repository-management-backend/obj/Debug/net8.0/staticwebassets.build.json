@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "4MJ7e1eg0zHt49NLQO8By03MpqrGyNZtzqtL+cZXMKc=",
+  "Hash": "3xtSkW2xhLDcI60lm8tuOnM5HOwkuu3sYWcVNjm5AVg=",
   "Source": "Repository-management-backend",
   "BasePath": "_content/Repository-management-backend",
   "Mode": "Default",
@@ -338,6 +338,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\assets\\img\\kapital-logo.png"
+    },
+    {
+      "Identity": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\api.js",
+      "SourceId": "Repository-management-backend",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\",
+      "BasePath": "_content/Repository-management-backend",
+      "RelativePath": "assets/js/api.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\assets\\js\\api.js"
     },
     {
       "Identity": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\app-shell.js",

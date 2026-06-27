@@ -881,40 +881,48 @@ function getInvoiceUrgency(invoice) {
   return { rank: 3, cls: 'inv-row-gray' };
 }
 
-function renderInvoiceTable() {
-  // Bağlanmış qaimələr siyahıda görünmür (yalnız müştəri profili "Köhnə qaimələr"də).
-  // Sıralama + rəng: gecikmiş(qırmızı) → bu gün(yaşıl) → ≤3 gün(sarı) → qalan(boz).
-  const list = getFilteredInvoices()
-    .filter(inv => !inv.isClosed)
-    .sort((a, b) => {
-      const d = getInvoiceUrgency(a).rank - getInvoiceUrgency(b).rank;
-      if (d !== 0) return d;
-      return new Date(a.returnDate || 0) - new Date(b.returnDate || 0);
-    });
+/* ===== Modul 4: Qaimələr — SQL Server (API) ===== */
+async function renderInvoiceTable() {
+  if (!invoiceTable) return;
+  invoiceTable.innerHTML = '<tr><td colspan="11">Yüklənir…</td></tr>';
+  let data;
+  try {
+    // Backend status="open" + axtarış; sıralama backend-də təcililik üzrədir
+    data = await API.invoices.list(currentInvoiceSearchFilter || '', 'open');
+  } catch (e) {
+    invoiceTable.innerHTML = '<tr><td colspan="11">Xəta: ' + escapeHtml(e.message || '') + '</td></tr>';
+    return;
+  }
+  invoices = data;   // qlobal (summary) — digər bölmələr üçün
+  const list = data.slice().sort((a, b) => {
+    const d = getInvoiceUrgency(a).rank - getInvoiceUrgency(b).rank;
+    if (d !== 0) return d;
+    return new Date(a.returnDate || 0) - new Date(b.returnDate || 0);
+  });
   if (!list.length) {
     invoiceTable.innerHTML = '<tr><td colspan="11">Qaimə yoxdur</td></tr>';
     return;
   }
-  invoiceTable.innerHTML = list.map(invoice => `
-    <tr class="${getInvoiceUrgency(invoice).cls}">
-      <td><strong>${invoice.invoiceNo || '-'}</strong></td>
-      <td>${invoice.customer || '-'}</td>
-      <td>${invoice.phone || '-'}${invoice.extraPhone ? `<div class="phone-mini">Əlavə: ${invoice.extraPhone}</div>` : ''}</td>
-      <td>${formatDate(invoice.returnDate)}</td>
-      <td><div class="invoice-mini-list">${getInvoiceItemsHtml(invoice)}</div></td>
-      <td>${formatMoney(invoice.totalAmount)}</td>
-      <td>${formatMoney(invoice.paidAmount)}</td>
-      <td>${formatMoney(invoice.depositAmount)}</td>
-      <td>${formatMoney(invoice.remainingDebt)}</td>
-      <td><span class="badge ${getBadgeClass(getInvoiceStatus(invoice))}">${getInvoiceStatus(invoice)}</span></td>
+  invoiceTable.innerHTML = list.map(inv => `
+    <tr class="${getInvoiceUrgency(inv).cls}">
+      <td><strong>${escapeHtml(inv.invoiceNo || '-')}</strong></td>
+      <td>${escapeHtml(inv.customerName || '-')}</td>
+      <td>${escapeHtml(inv.phone || '-')}</td>
+      <td>${formatDate(inv.returnDate)}</td>
+      <td>${inv.itemCount || 0} mal</td>
+      <td>${formatMoney(inv.totalAmount)}</td>
+      <td>${formatMoney(inv.paidAmount)}</td>
+      <td>${formatMoney(inv.depositAmount)}</td>
+      <td>${formatMoney(inv.remainingDebt)}</td>
+      <td><span class="badge ${getBadgeClass(getInvoiceStatus(inv))}">${getInvoiceStatus(inv)}</span></td>
       <td>
         <div class="action-cell">
-          <button class="action-btn edit" onclick="editInvoice('${invoice.id}')">Edit</button>
-          <button class="action-btn pay" onclick="openInvoicePaymentModal('${invoice.id}')">Ödəniş</button>
-          <button class="action-btn return" onclick="openReturnModal('${invoice.id}')">Qaytarma</button>
-          <button class="action-btn close" onclick="extendInvoiceOneMonth('${invoice.id}')">Artır</button>
-          <button class="action-btn print" onclick="printInvoice('${invoice.id}')">Çap et</button>
-          <button class="action-btn delete" onclick="closeInvoice('${invoice.id}')">Bağla</button>
+          <button class="action-btn edit" onclick="editInvoice('${inv.id}')">Edit</button>
+          <button class="action-btn pay" onclick="openInvoicePaymentModal('${inv.id}')">Ödəniş</button>
+          <button class="action-btn return" onclick="openReturnModal('${inv.id}')">Qaytarma</button>
+          <button class="action-btn close" onclick="extendInvoiceOneMonth('${inv.id}')">Artır</button>
+          <button class="action-btn print" onclick="printInvoice('${inv.id}')">Çap et</button>
+          <button class="action-btn delete" onclick="closeInvoice('${inv.id}')">Bağla</button>
         </div>
       </td>
     </tr>
@@ -1150,20 +1158,11 @@ function buildInvoiceProcedureHistoryRows(customer) {
   return [...invoiceRows, ...manualRows].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 }
 
-window.deleteInvoiceCompletely = function(invoiceId) {
-  const index = invoices.findIndex(item => String(item.id) === String(invoiceId));
-  if (index === -1) return;
-  const invoice = invoices[index];
-  if (!confirm(`${invoice.invoiceNo || 'Bu qaimə'} tam silinsin?`)) return;
-
-  invoices.splice(index, 1);
-  customers = customers.map(customer => ensureCustomerShape({
-    ...customer,
-    history: (customer.history || []).filter(entry => !(entry.source === 'invoice' && String(entry.invoiceId) === String(invoiceId)))
-  }));
-
-  setStorageData(STORAGE_KEYS.invoices, invoices);
-  setStorageData(STORAGE_KEYS.customers, customers);
+window.deleteInvoiceCompletely = async function(invoiceId) {
+  const invoice = invoices.find(item => String(item.id) === String(invoiceId));
+  if (!confirm(`${invoice ? (invoice.invoiceNo || 'Bu qaimə') : 'Bu qaimə'} tam silinsin?`)) return;
+  try { await API.invoices.remove(invoiceId); }
+  catch (e) { return alert(e.message || 'Qaimə silinmədi.'); }
   renderAll();
 };
 
@@ -1323,39 +1322,62 @@ function getStandardProducts(){
 }
 function setStandardProducts(list){ setStorageData(STORAGE_KEYS.standardProducts, list); }
 function isStandardProductUsed(category){ return invoices.some(inv => (inv.items||[]).some(item => (item.category||'') === category)); }
+/* ===== Modul 2: Kateqoriyalar — SQL Server (API) ===== */
+// Standart mallar artıq backend Category (Kind=Standard) cədvəlindən gəlir.
+let standardCatalog = [];   // son yüklənmiş raw DTO-lar
+function catTypeFromRent(rentType){ return rentType === 'Daily' ? 'daily' : 'monthly'; }
+function mapCatalogDto(d){ return { id: d.id, name: d.name || '', price: Number(d.price || 0), unit: d.unit || '', note: d.note || '', type: catTypeFromRent(d.rentType) }; }
+
 window.editStandardProduct = function(id){
-  const list = getStandardProducts();
-  const item = list.find(x => x.id === id);
+  const item = standardCatalog.find(x => String(x.id) === String(id));
   if (!item || !standardProductModal) return;
   editingStandardProductId = id;
-  standardProductModalTitle.textContent = `${item.category} — edit`;
-  standardProductNameInput.value = item.category || '';
+  standardProductModalTitle.textContent = `${item.name} — edit`;
+  standardProductNameInput.value = item.name || '';
   standardProductPriceInput.value = Number(item.price || 0);
   standardProductUnitInput.value = item.unit || '';
   standardProductInfoInput.value = item.info || '';
   standardProductNoteInput.value = item.note || '';
   openModal(standardProductModal);
 };
-function saveStandardProductFromModal(){
+async function saveStandardProductFromModal(){
   if (!editingStandardProductId) return;
-  const list = getStandardProducts();
-  const item = list.find(x => x.id === editingStandardProductId);
+  const item = standardCatalog.find(x => String(x.id) === String(editingStandardProductId));
   if (!item) return;
   const price = Number(standardProductPriceInput.value || 0);
   if (Number.isNaN(price) || price < 0) return alert('Qiyməti düzgün yaz.');
-  item.price = price;
-  item.unit = (standardProductUnitInput.value || '').trim();
-  item.info = (standardProductInfoInput.value || '').trim();
-  item.note = (standardProductNoteInput.value || '').trim();
-  setStandardProducts(list);
+  const dto = {
+    id: Number(item.id),
+    kind: 'Standard',
+    name: (standardProductNameInput.value || item.name || '').trim(),
+    info: (standardProductInfoInput.value || '').trim(),
+    price: price,
+    unit: (standardProductUnitInput.value || '').trim(),
+    note: (standardProductNoteInput.value || '').trim(),
+    rentType: item.rentType || 'Monthly',
+    parentId: item.parentId == null ? null : item.parentId
+  };
+  try { await API.categories.update(item.id, dto); }
+  catch (e) { return alert(e.message || 'Yadda saxlanmadı.'); }
   closeModal(standardProductModal);
   editingStandardProductId = null;
   renderProducts();
-};
-function renderProducts() {
-  const rows = getStandardProducts().map(item => ({
-    ...item,
-    priceText: Number(item.price || 0) > 0 ? `${Number(item.price || 0).toFixed(2)} AZN${item.unit ? ' / ' + item.unit : ''}` : (item.note || 'Sərbəst')
+}
+async function renderProducts() {
+  if (!productsTable) return;
+  productsTable.innerHTML = '<tr><td colspan="4">Yüklənir…</td></tr>';
+  let data;
+  try { data = await API.categories.list('Standard'); }
+  catch (e) { productsTable.innerHTML = '<tr><td colspan="4">Xəta: ' + escapeHtml(e.message || '') + '</td></tr>'; return; }
+  standardCatalog = data;
+  const rows = data.map(d => ({
+    id: d.id,
+    category: d.name,
+    info: d.info || '',
+    note: d.note || '',
+    price: Number(d.price || 0),
+    unit: d.unit || '',
+    priceText: Number(d.price || 0) > 0 ? `${Number(d.price || 0).toFixed(2)} AZN${d.unit ? ' / ' + d.unit : ''}` : (d.note || 'Sərbəst')
   }));
   const filteredRows = getFilteredProductRows(rows);
   productsTable.innerHTML = filteredRows.length
@@ -1363,7 +1385,20 @@ function renderProducts() {
     : '<tr><td colspan="4">Məlumat tapılmadı</td></tr>';
 }
 
-function renderCatalogLists() {
+async function renderCatalogLists() {
+  try {
+    const [ex, sv, po] = await Promise.all([
+      API.categories.list('Extra'),
+      API.categories.list('Service'),
+      API.categories.list('Pole')
+    ]);
+    extraCategories = ex.map(mapCatalogDto);
+    serviceCategories = sv.map(mapCatalogDto);
+    poleCategories = po.map(mapCatalogDto);
+  } catch (e) {
+    if (extraCategoryList) extraCategoryList.innerHTML = '<div class="simple-item">Xəta: ' + escapeHtml(e.message || '') + '</div>';
+    return;
+  }
   const renderList = (list, type) => {
     if (!list.length) return '<div class="simple-item">Məlumat yoxdur</div>';
     return list.map(item => `
@@ -1418,41 +1453,28 @@ window.openPoleCategoryModal = function(itemId = null){
   }
   openModal(poleCategoryModal);
 };
-function savePoleCategoryFromModal(){
+async function savePoleCategoryFromModal(){
   const name = (poleCategoryNameInput?.value || '').trim();
   const price = Number(poleCategoryPriceInput?.value || 0);
   const unit = (poleCategoryUnitInput?.value || 'ədəd').trim() || 'ədəd';
   const note = (poleCategoryNoteInput?.value || '').trim();
   if (!name) return alert('Ölçünü yaz. Məs: 3.85, 1.70, 5.50');
   if (Number.isNaN(price) || price < 0) return alert('Qiyməti düzgün yaz.');
-  const duplicate = poleCategories.find(x => (x.name || '').toLowerCase() === name.toLowerCase() && String(x.id) !== String(editingPoleCategoryId));
-  if (duplicate) return alert('Bu ölçü artıq əlavə olunub.');
-  if (editingPoleCategoryId) {
-    const index = poleCategories.findIndex(x => String(x.id) === String(editingPoleCategoryId));
-    if (index >= 0) poleCategories[index] = { ...poleCategories[index], name, price, unit, note };
-  } else {
-    poleCategories.unshift({ id: `pole-${Date.now()}`, name, price, unit, note });
-  }
-  setStorageData(STORAGE_KEYS.poleCategories, poleCategories);
-  // Ölçü üçün anbar stoku ayrıca saxlanılır: "Dəmir dirək 3.85"
-  const poleStockEl = document.getElementById('poleCategoryStockInput');
-  if (poleStockEl) {
-    const invName = `Dəmir dirək ${name}`;
-    inventoryStock = { ...(inventoryStock || {}), [invName]: Number(poleStockEl.value || 0) };
-    setStorageData(STORAGE_KEYS.inventory, inventoryStock);
+  const dto = { kind: 'Pole', name, price, unit, note, rentType: 'Monthly' };
+  try {
+    if (editingPoleCategoryId) await API.categories.update(editingPoleCategoryId, { id: Number(editingPoleCategoryId), ...dto });
+    else await API.categories.create(dto);
+  } catch (e) {
+    return alert(e.message || 'Yadda saxlanmadı.');
   }
   closeModal(poleCategoryModal);
   editingPoleCategoryId = null;
   renderCatalogLists();
 };
-window.deletePoleCategory = function(itemId){
-  const item = getPoleCategoryById(itemId);
-  if (!item) return;
-  const used = invoices.some(inv => (inv.items || []).some(x => x.category === 'Dəmir dirək' && String(x.poleCategoryId || '') === String(itemId)));
-  if (used) return alert('Bu dəmir dirək ölçüsü qaimədə istifadə olunub, silmək olmaz.');
-  if (!confirm(`${item.name} silinsin?`)) return;
-  poleCategories = poleCategories.filter(x => String(x.id) !== String(itemId));
-  setStorageData(STORAGE_KEYS.poleCategories, poleCategories);
+window.deletePoleCategory = async function(itemId){
+  if (!confirm('Bu ölçü silinsin?')) return;
+  try { await API.categories.remove(itemId); }
+  catch (e) { return alert(e.message || 'Silinmədi.'); }
   renderCatalogLists();
 };
 
@@ -1533,36 +1555,41 @@ function collectInventoryUsage(){
   });
   return usage;
 }
-function getInventoryRows(){
-  const stock=getInventoryStock();
-  const usage=collectInventoryUsage();
-  const names=Array.from(new Set([...Object.keys(stock),...Object.keys(usage)])).sort((a,b)=>a.localeCompare(b,'az'));
-  const q=(currentInventorySearchFilter||'').trim().toLowerCase();
-  return names.map(name=>{
-    const total=Number(stock[name]||0);
-    const out=Number(usage[name]?.rented||0);
-    const holders=[...(usage[name]?.holders||[])].sort((a,b)=>(a.customer||'').localeCompare(b.customer||'','az'));
-    return {name,total,rented:out,holders,available:total-out,custom:Object.prototype.hasOwnProperty.call(stock,name)};
-  }).filter(row=>!q||row.name.toLowerCase().includes(q)||row.holders.some(h => [h.customer,h.invoiceNo,h.phone].join(' ').toLowerCase().includes(q)));
-}
-function safeInventoryNameForJs(name){ return String(name).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+/* ===== Modul 3: Anbar — SQL Server (API) ===== */
+let inventoryCache = [];     // son yüklənmiş API sətirləri
+let editingInventoryId = null;
 function formatInventoryHolders(holders){
   if(!holders || !holders.length) return '<span class="inventory-empty-holder">Hazırda heç kimdə deyil</span>';
-  return `<div class="inventory-holder-list">${holders.map(h=>`<div class="inventory-holder-item"><strong>${escapeHtml(h.customer)}</strong> — ${Number(h.qty||0)} ədəd <span class="history-note-muted"><a class="inv-invoice-link" onclick="editInvoice('${h.invoiceId}')" title="Qaiməyə keçid">${escapeHtml(h.invoiceNo||'-')}</a>${h.returnDate ? ' / qaytarma: ' + formatDate(h.returnDate) : ''}</span></div>`).join('')}</div>`;
+  return `<div class="inventory-holder-list">${holders.map(h=>`<div class="inventory-holder-item"><strong>${escapeHtml(h.customerName||'')}</strong> — ${Number(h.quantity||0)} ədəd <span class="history-note-muted"><a class="inv-invoice-link" onclick="editInvoice('${h.invoiceId}')" title="Qaiməyə keçid">${escapeHtml(h.invoiceNo||'-')}</a>${h.returnDate ? ' / qaytarma: ' + formatDate(h.returnDate) : ''}</span></div>`).join('')}</div>`;
 }
-window.toggleInventoryHolders = function(idx){
-  const el = document.getElementById('inv-holders-' + idx);
-  if (el) el.classList.toggle('hidden');
+window.toggleInventoryHolders = async function(id){
+  const el = document.getElementById('inv-holders-' + id);
+  if (!el) return;
+  if (!el.classList.contains('hidden')) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = '<span class="inventory-empty-holder">Yüklənir…</span>';
+  let holders;
+  try { holders = await API.inventory.holders(id); }
+  catch (e) { el.innerHTML = '<span class="inventory-empty-holder">Xəta: ' + escapeHtml(e.message||'') + '</span>'; return; }
+  el.innerHTML = formatInventoryHolders(holders);
 };
-function renderInventorySection(){
+async function renderInventorySection(){
   if(!inventoryTableBody||!inventorySummaryGrid) return;
-  const rows=getInventoryRows();
-  const totalStock=rows.reduce((s,r)=>s+Number(r.total||0),0);
-  const totalOut=rows.reduce((s,r)=>s+Number(r.rented||0),0);
-  const lowCount=rows.filter(r=>Number(r.available||0)<0).length;
+  inventoryTableBody.innerHTML = '<tr><td colspan="6">Yüklənir…</td></tr>';
+  let data;
+  try { data = await API.inventory.list(); }
+  catch (e) { inventoryTableBody.innerHTML = '<tr><td colspan="6">Xəta: ' + escapeHtml(e.message||'') + '</td></tr>'; return; }
+  inventoryCache = data.map(d => ({ id:d.id, name:d.name, total:Number(d.totalCount||0), rented:Number(d.rentedOut||0), available:Number(d.freeCount||0) }));
+
+  const q=(currentInventorySearchFilter||'').trim().toLowerCase();
+  const rows = inventoryCache.filter(r => !q || (r.name||'').toLowerCase().includes(q));
+
+  const totalStock=inventoryCache.reduce((s,r)=>s+r.total,0);
+  const totalOut=inventoryCache.reduce((s,r)=>s+r.rented,0);
+  const lowCount=inventoryCache.filter(r=>r.available<0).length;
   inventorySummaryGrid.innerHTML=`<div class="report-box"><h4>Ümumi anbar sayı</h4><p>${totalStock}</p></div><div class="report-box"><h4>İcarədə olan</h4><p>${totalOut}</p></div><div class="report-box"><h4>Qalıq problemi</h4><p>${lowCount}</p></div>`;
-  if(!rows.length){ inventoryTableBody.innerHTML='<tr><td colspan="6">Anbarda mal yoxdur. + Anbara mal əlavə et düyməsi ilə kateqoriyadan mal əlavə et.</td></tr>'; return; }
-  inventoryTableBody.innerHTML=rows.map((row,idx)=>`<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${row.total}</td><td>${row.rented}</td><td><span class="${row.available<0?'inventory-low':'inventory-positive'}">${row.available}</span></td><td>${row.holders && row.holders.length ? `<button class="action-btn edit" onclick="toggleInventoryHolders(${idx})">Ətraflı (${row.holders.length})</button><div class="inventory-holders-detail hidden" id="inv-holders-${idx}">${formatInventoryHolders(row.holders)}</div>` : '<span class="inventory-empty-holder">Hazırda heç kimdə deyil</span>'}</td><td><div class="action-cell"><button class="action-btn edit" onclick="openInventoryItemModal('${safeInventoryNameForJs(row.name)}')">Edit</button>${row.custom?`<button class="action-btn delete" onclick="deleteInventoryStock('${safeInventoryNameForJs(row.name)}')">Sil</button>`:''}</div></td></tr>`).join('');
+  if(!rows.length){ inventoryTableBody.innerHTML='<tr><td colspan="6">Anbarda mal yoxdur. + Anbara mal əlavə et düyməsi ilə əlavə et.</td></tr>'; return; }
+  inventoryTableBody.innerHTML=rows.map(row=>`<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${row.total}</td><td>${row.rented}</td><td><span class="${row.available<0?'inventory-low':'inventory-positive'}">${row.available}</span></td><td>${row.rented>0 ? `<button class="action-btn edit" onclick="toggleInventoryHolders(${row.id})">Ətraflı</button><div class="inventory-holders-detail hidden" id="inv-holders-${row.id}"></div>` : '<span class="inventory-empty-holder">Hazırda heç kimdə deyil</span>'}</td><td><div class="action-cell"><button class="action-btn edit" onclick="openInventoryItemModal(${row.id})">Edit</button><button class="action-btn delete" onclick="deleteInventoryStock(${row.id})">Sil</button></div></td></tr>`).join('');
 }
 function getInventoryCategoryOptions(){
   const standard = getStandardProducts().map(x=>x.category).filter(Boolean);
@@ -1574,44 +1601,43 @@ function getInventoryCategoryOptions(){
 }
 function fillInventoryCategorySelect(selected=''){
   if(!inventoryCategorySelect) return;
-  poleCategories = getStorageData(STORAGE_KEYS.poleCategories, poleCategories || []);
   const options = getInventoryCategoryOptions();
   inventoryCategorySelect.innerHTML = `${options.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}<option value="__custom__">Başqa mal / özüm yazım</option>`;
   inventoryCategorySelect.value = options.includes(selected) ? selected : (selected ? '__custom__' : (options[0] || '__custom__'));
   if(inventoryCustomNameGroup) inventoryCustomNameGroup.classList.toggle('hidden', inventoryCategorySelect.value !== '__custom__');
   if(selected && inventoryCategorySelect.value === '__custom__') inventoryCustomNameInput.value = selected;
 }
-window.openInventoryItemModal = function(name=null){
-  editingInventoryName = name;
-  const stock = getInventoryStock();
-  inventoryItemModalTitle.textContent = name ? 'Anbar malını edit et' : 'Anbara mal əlavə et';
-  fillInventoryCategorySelect(name || '');
-  inventoryCountInput.value = name ? Number(stock[name] || 0) : '0';
+window.openInventoryItemModal = function(id=null){
+  editingInventoryId = id;
+  const item = (id != null) ? inventoryCache.find(x => String(x.id) === String(id)) : null;
+  inventoryItemModalTitle.textContent = item ? 'Anbar malını edit et' : 'Anbara mal əlavə et';
+  fillInventoryCategorySelect(item ? item.name : '');
+  inventoryCountInput.value = item ? Number(item.total || 0) : '0';
   inventoryNoteInput.value = '';
-  if(!name && inventoryCustomNameInput) inventoryCustomNameInput.value = '';
+  if(!item && inventoryCustomNameInput) inventoryCustomNameInput.value = '';
   openModal(inventoryItemModal);
 };
 window.addInventoryItem = function(){ window.openInventoryItemModal(null); };
-function saveInventoryItemFromModal(){
+async function saveInventoryItemFromModal(){
   const selected = inventoryCategorySelect.value;
   const name = selected === '__custom__' ? (inventoryCustomNameInput.value || '').trim() : selected;
   if(!name) return alert('Malın adını seç və ya yaz.');
   const count = Number(inventoryCountInput.value || 0);
   if(Number.isNaN(count) || count < 0) return alert('Sayı düzgün yaz.');
-  const stock=getInventoryStock();
-  if(editingInventoryName && editingInventoryName !== name) delete stock[editingInventoryName];
-  stock[name] = count;
-  saveInventoryStock(stock);
+  try {
+    if (editingInventoryId != null) await API.inventory.update(editingInventoryId, { id: Number(editingInventoryId), name, totalCount: count });
+    else await API.inventory.create({ name, totalCount: count });
+  } catch (e) {
+    return alert(e.message || 'Yadda saxlanmadı.');
+  }
   closeModal(inventoryItemModal);
-  editingInventoryName = null;
+  editingInventoryId = null;
   renderInventorySection();
 }
-window.deleteInventoryStock=function(name){
-  const stock=getInventoryStock();
-  if(!Object.prototype.hasOwnProperty.call(stock,name)) return;
-  if(!confirm(`${name} anbardan silinsin?`)) return;
-  delete stock[name];
-  saveInventoryStock(stock);
+window.deleteInventoryStock = async function(id){
+  if(!confirm('Anbardan silinsin?')) return;
+  try { await API.inventory.remove(id); }
+  catch (e) { return alert(e.message || 'Silinmədi.'); }
   renderInventorySection();
 };
 
@@ -1706,7 +1732,7 @@ window.openCustomerModal = function(customerId = null) {
   openModal(customerModal);
 };
 
-function saveCustomerFromModal() {
+async function saveCustomerFromModal() {
   const name = customerNameInput.value.trim();
   const phone = normalizePhone(customerPhoneInput.value);
   const extraPhone = normalizePhone(customerExtraPhoneInput.value);
@@ -1715,38 +1741,33 @@ function saveCustomerFromModal() {
   const note = noteEl ? noteEl.value.trim() : '';
   if (!name || !phone) return alert('Ad və telefon mütləqdir.');
 
-  const duplicate = customers.find(item => (item.name || '').toLowerCase() === name.toLowerCase() && String(item.id) !== String(editingCustomerId));
-  if (duplicate) return alert('Bu adda müştəri artıq mövcuddur.');
-
-  if (editingCustomerId) {
-    const index = customers.findIndex(item => String(item.id) === String(editingCustomerId));
-    if (index === -1) return;
-    customers[index] = { ...customers[index], name, phone, extraPhone, address, note };
-  } else {
-    customers.unshift({ id: `c-${Date.now()}`, name, phone, extraPhone, address, note, history: [] });
+  const dto = { name, phone, extraPhone, address, note };
+  try {
+    if (editingCustomerId) {
+      await API.customers.update(editingCustomerId, { id: Number(editingCustomerId), ...dto });
+    } else {
+      await API.customers.create(dto);
+    }
+  } catch (e) {
+    return alert(e.message || 'Müştəri yadda saxlanmadı.');
   }
 
-  setStorageData(STORAGE_KEYS.customers, customers);
   currentCustomerSearchFilter = '';
   if (customerSearchMainInput) customerSearchMainInput.value = '';
   closeModal(customerModal);
-  refreshData();
-setStorageData(STORAGE_KEYS.invoices, invoices);
-invoices.forEach(syncInvoiceCustomerHistory);
-renderAll();
+  renderCustomers();
 }
 
-window.deleteCustomer = function(customerId) {
+window.deleteCustomer = async function(customerId) {
   const customer = customers.find(item => String(item.id) === String(customerId));
-  if (!customer) return;
-  const relatedInvoices = invoices.filter(inv => String(inv.customerId) === String(customerId) || ((inv.customer || '').trim().toLowerCase() === (customer.name || '').trim().toLowerCase() && (inv.phone || '').trim() === (customer.phone || '').trim()));
-  if (relatedInvoices.length || (customer.history || []).length) {
-    return alert('Bu müştərinin qaiməsi və ya tarixçəsi var. Silmək üçün əvvəl əlaqəli məlumatları təmizlə.');
+  if (!confirm(`${customer ? customer.name : 'Müştəri'} silinsin?`)) return;
+  try {
+    await API.customers.remove(customerId);
+  } catch (e) {
+    // Backend qaimə/borc qoruması işləyir → mesajı göstər
+    return alert(e.message || 'Müştəri silinmədi.');
   }
-  if (!confirm(`${customer.name} silinsin?`)) return;
-  customers = customers.filter(item => String(item.id) !== String(customerId));
-  setStorageData(STORAGE_KEYS.customers, customers);
-  renderAll();
+  renderCustomers();
 };
 
 window.openCatalogModal = function(type, itemId = null) {
@@ -1764,7 +1785,7 @@ window.openCatalogModal = function(type, itemId = null) {
   openModal(catalogModal);
 };
 
-function saveCatalogFromModal() {
+async function saveCatalogFromModal() {
   const name = catalogNameInput.value.trim();
   const price = Number(catalogPriceInput.value || 0);
   const unit = catalogUnitInput.value.trim();
@@ -1774,35 +1795,26 @@ function saveCatalogFromModal() {
   if (!name) return alert('Ad mütləqdir.');
   if (price < 0) return alert('Qiymət mənfi ola bilməz.');
 
-  const key = editingCatalogType === 'extra' ? 'extraCategories' : 'serviceCategories';
-  const list = editingCatalogType === 'extra' ? cloneData(extraCategories) : cloneData(serviceCategories);
-  const duplicate = list.find(item => item.name.toLowerCase() === name.toLowerCase() && String(item.id) !== String(editingCatalogId));
-  if (duplicate) return alert('Bu ad artıq mövcuddur.');
-
-  if (editingCatalogId) {
-    const index = list.findIndex(item => String(item.id) === String(editingCatalogId));
-    if (index === -1) return;
-    list[index] = { ...list[index], name, price, unit, note, type };
-  } else {
-    list.unshift({ id: `${editingCatalogType}-${Date.now()}`, name, price, unit, note, type });
+  const dto = {
+    kind: editingCatalogType === 'extra' ? 'Extra' : 'Service',
+    name, price, unit, note,
+    rentType: type === 'daily' ? 'Daily' : 'Monthly'
+  };
+  try {
+    if (editingCatalogId) await API.categories.update(editingCatalogId, { id: Number(editingCatalogId), ...dto });
+    else await API.categories.create(dto);
+  } catch (e) {
+    return alert(e.message || 'Yadda saxlanmadı.');
   }
-
-  if (editingCatalogType === 'extra') extraCategories = list; else serviceCategories = list;
-  setStorageData(STORAGE_KEYS[key], list);
   closeModal(catalogModal);
-  renderAll();
+  renderCatalogLists();
 }
 
-window.deleteCatalogItem = function(type, itemId) {
-  const key = type === 'extra' ? STORAGE_KEYS.extraCategories : STORAGE_KEYS.serviceCategories;
-  let list = type === 'extra' ? extraCategories : serviceCategories;
-  const item = list.find(x => String(x.id) === String(itemId));
-  if (!item) return;
-  if (!confirm(`${item.name} silinsin?`)) return;
-  list = list.filter(x => String(x.id) !== String(itemId));
-  if (type === 'extra') extraCategories = list; else serviceCategories = list;
-  setStorageData(key, list);
-  renderAll();
+window.deleteCatalogItem = async function(type, itemId) {
+  if (!confirm('Silinsin?')) return;
+  try { await API.categories.remove(itemId); }
+  catch (e) { return alert(e.message || 'Silinmədi.'); }
+  renderCatalogLists();
 };
 
 window.editInvoice = function(invoiceId) {
@@ -2869,144 +2881,170 @@ window.closeInvoice = function(invoiceId) {
   renderAll();
 };
 
-function renderCustomers() {
-  if (!customers.length) {
-    customersList.innerHTML = '<div class="simple-item">Müştəri yoxdur</div>';
-    return;
-  }
-  const customerQ = (currentCustomerSearchFilter || '').trim().toLowerCase();
-  const sortedCustomers = [...customers]
-    .filter(customer => {
-      const text = [customer.name || '', customer.phone || '', customer.extraPhone || '', customer.address || ''].join(' ').toLowerCase();
-      return !customerQ || text.includes(customerQ);
-    })
-    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'az'));
-  customersList.className = 'simple-list customer-list-clean';
-  if (!sortedCustomers.length) {
-    customersList.innerHTML = '<div class="simple-item">Axtarışa uyğun müştəri tapılmadı</div>';
-    return;
-  }
-  customersList.innerHTML = sortedCustomers.map(item => {
-    const ledger = getCustomerLedger(item);
-    const customerInvoices = getCustomerInvoices(item);
-    const activeInvoiceCount = customerInvoices.filter(invoice => !invoice.isClosed).length;
-    const historyRows = customerInvoices.map(invoice => ({
-      date: invoice.createdAt || invoice.invoiceDate,
-      type: 'Qaimə proseduru',
-      amount: Number(invoice.totalAmount || 0),
-      note: getProcedureNote(invoice),
-      debtChange: Number(invoice.remainingDebt || 0),
-      depositChange: Number((Number(invoice.depositAmount || 0) - (invoice.depositReturnedHistory || []).reduce((s,x)=>s+Number(x.amount||0),0)).toFixed(2)),
-      invoiceId: invoice.id,
-      invoiceNo: invoice.invoiceNo || ''
-    })).sort((a,b)=> new Date(b.date||0)-new Date(a.date||0));
-    const totalPaid = customerInvoices.reduce((sum, invoice) => sum + Number(invoice.paidAmount || 0), 0);
-    return `
-      <div class="customer-row-card">
-        <div class="customer-row-top">
-          <div class="customer-main-info">
-            <div class="customer-name-line">
-              <h3>${item.name}</h3>
-              <div class="customer-mini-pills">
-                <span class="customer-mini-pill debt">Borc: ${formatMoney(ledger.debt)}</span>
-                <span class="customer-mini-pill deposit">Depozit: ${formatMoney(ledger.deposit)}</span>
-                <span class="customer-mini-pill">Ödəniş: ${formatMoney(totalPaid)}</span>
-              </div>
-            </div>
-            <div class="customer-mini-meta"><span>Qaimə sayı: ${customerInvoices.length}</span><span>Aktiv: ${activeInvoiceCount}</span></div>
-          </div>
-          <div class="customer-row-actions">
-            <button class="action-btn edit" onclick="toggleCustomerDetail('${item.id}')">Ətraflı</button>
-            <button class="action-btn return" onclick="toggleCustomerHistory('${item.id}')">Tarixçə</button>
-            <button class="action-btn close" onclick="openCustomerTransactionModal('${item.id}','debt-add')">Borc əlavə et</button>
-            <button class="action-btn print" onclick="openCustomerTransactionModal('${item.id}','payment')">Ödəniş et</button>
-            <button class="action-btn return" onclick="openCustomerTransactionModal('${item.id}','deposit-to-debt')">Depozitlə ödə</button>
-            <button class="action-btn edit" onclick="openCustomerModal('${item.id}')">Edit</button>
-            <button class="action-btn delete" onclick="deleteCustomer('${item.id}')">Sil</button>
-          </div>
-        </div>
-        <div class="customer-expand-area hidden" id="detail-${item.id}">
-          <div class="customer-detail-grid">
-            <div class="customer-detail-card"><strong>Telefon</strong><div class="simple-item-sub">${item.phone || '-'}</div></div>
-            <div class="customer-detail-card"><strong>Əlavə telefon</strong><div class="simple-item-sub">${item.extraPhone || '-'}</div></div>
-            <div class="customer-detail-card"><strong>Ünvan</strong><div class="simple-item-sub">${item.address || '-'}</div></div>
-            <div class="customer-detail-card"><strong>Aktiv borc</strong><div class="simple-item-sub">${formatMoney(ledger.debt)}</div></div>
-            <div class="customer-detail-card"><strong>Qalan depozit</strong><div class="simple-item-sub">${formatMoney(ledger.deposit)}</div></div>
-            <div class="customer-detail-card"><strong>Ümumi ödəniş</strong><div class="simple-item-sub">${formatMoney(totalPaid)}</div></div>
-            <div class="customer-detail-card"><strong>Qaimə sayı</strong><div class="simple-item-sub">${customerInvoices.length} / Aktiv: ${activeInvoiceCount}</div></div>
-          </div>
-          ${(() => {
-            const _active = customerInvoices.filter(inv => !inv.isClosed);
-            const _closed = customerInvoices.filter(inv => inv.isClosed);
-            const _line = inv => `<div class="cust-inv-line"><div><strong>${escapeHtml(inv.invoiceNo || '-')}</strong> <span class="badge ${getBadgeClass(getInvoiceStatus(inv))}">${getInvoiceStatus(inv)}</span></div><div class="simple-item-sub">İcarə: ${formatDate(inv.invoiceDate)} · Qaytarma: ${formatDate(inv.returnDate)}</div><div class="simple-item-sub">Ümumi: ${formatMoney(inv.totalAmount)} · Borc: ${formatMoney(inv.remainingDebt)}</div><button class="action-btn edit" onclick="editInvoice('${inv.id}')">Bax</button></div>`;
-            return `<div class="customer-invoice-split">
-              <div class="cust-inv-col"><h4>Aktiv qaimələr (${_active.length})</h4>${_active.length ? _active.map(_line).join('') : '<div class="simple-item-sub">Aktiv qaimə yoxdur</div>'}</div>
-              <div class="cust-inv-col"><h4>Köhnə qaimələr (${_closed.length})</h4>${_closed.length ? _closed.map(_line).join('') : '<div class="simple-item-sub">Köhnə qaimə yoxdur</div>'}</div>
-            </div>`;
-          })()}
-          <div class="customer-actions-grid">
-            <button class="action-btn return" onclick="openCustomerTransactionModal('${item.id}','deposit-add')">Depozit əlavə et</button>
-            <button class="action-btn edit" onclick="openCustomerTransactionModal('${item.id}','deposit-remove')">Depozit çıx</button>
-          </div>
-        </div>
-        <div class="customer-expand-area hidden" id="history-${item.id}">
-          ${historyRows.length ? `
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Tarix</th><th>Əməliyyat</th><th>Məbləğ</th><th>Qeyd</th><th>Borc dəyişimi</th><th>Depozit dəyişimi</th><th>Əməliyyatlar</th></tr></thead>
-                <tbody>
-                ${historyRows.map(entry => `
-                  <tr>
-                    <td>${formatDateTime(entry.date)}</td>
-                    <td><span class="history-type-badge system">${entry.type}</span></td>
-                    <td>${formatMoney(entry.amount)}</td>
-                    <td>${entry.note}<div class="history-note-muted">Qaimə: ${entry.invoiceNo}</div></td>
-                    <td><span class="mono-amount ${amountClass(entry.debtChange)}">${formatSignedMoney(entry.debtChange)}</span></td>
-                    <td><span class="mono-amount ${amountClass(entry.depositChange)}">${formatSignedMoney(entry.depositChange)}</span></td>
-                    <td><div class="action-cell"><button class="action-btn edit" onclick="editInvoice('${entry.invoiceId}')">Qaiməyə bax</button><button class="action-btn return" onclick="editInvoice('${entry.invoiceId}')">Edit</button><button class="action-btn delete" onclick="deleteInvoiceCompletely('${entry.invoiceId}')">Sil</button></div></td>
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>` : '<div class="empty-history">Tarixçə yoxdur</div>'}
-        </div>
-      </div>`;
-  }).join('');
+/* ===== Modul 1: Müştərilər — SQL Server (API) ===== */
+function mapCustomerDto(d) {
+  return {
+    id: d.id,
+    name: d.name || '',
+    phone: d.phone || '',
+    extraPhone: d.extraPhone || '',
+    address: d.address || '',
+    note: d.note || '',
+    debt: Number(d.debt || 0),
+    deposit: Number(d.deposit || 0),
+    activeInvoiceCount: Number(d.activeInvoiceCount || 0),
+    history: []   // digər bölmələrin crash olmaması üçün
+  };
 }
 
-function saveCustomerTransaction() {
+// Profil qaimələri üçün sadə status (overdue/today/soon/normal/closed)
+function profileInvoiceStatus(inv) {
+  if (inv.isClosed) return { label: 'Bağlı', cls: 'closed' };
+  const days = Math.round((new Date(inv.returnDate) - new Date(new Date().toDateString())) / 86400000);
+  if (days < 0) return { label: 'Gecikir', cls: 'overdue' };
+  if (days === 0) return { label: 'Bu gün', cls: 'today' };
+  if (days <= 3) return { label: 'Yaxın', cls: 'soon' };
+  return { label: 'Normal', cls: 'normal' };
+}
+
+async function renderCustomers() {
+  if (!customersList) return;
+  customersList.className = 'simple-list customer-list-clean';
+  customersList.innerHTML = '<div class="simple-item">Yüklənir…</div>';
+
+  let data;
+  try {
+    data = await API.customers.list();
+  } catch (e) {
+    customersList.innerHTML = '<div class="simple-item">Xəta: ' + escapeHtml(e.message || 'Yüklənmədi') + '</div>';
+    return;
+  }
+  customers = data.map(mapCustomerDto);
+
+  const q = (currentCustomerSearchFilter || '').trim().toLowerCase();
+  const rows = customers
+    .filter(c => !q || [c.name, c.phone, c.extraPhone, c.address].join(' ').toLowerCase().includes(q))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'az'));
+
+  if (!rows.length) {
+    customersList.innerHTML = '<div class="simple-item">' + (q ? 'Axtarışa uyğun müştəri tapılmadı' : 'Müştəri yoxdur') + '</div>';
+    return;
+  }
+
+  customersList.innerHTML = rows.map(item => `
+    <div class="customer-row-card">
+      <div class="customer-row-top">
+        <div class="customer-main-info">
+          <div class="customer-name-line">
+            <h3>${escapeHtml(item.name)}</h3>
+            <div class="customer-mini-pills">
+              <span class="customer-mini-pill debt">Borc: ${formatMoney(item.debt)}</span>
+              <span class="customer-mini-pill deposit">Depozit: ${formatMoney(item.deposit)}</span>
+            </div>
+          </div>
+          <div class="customer-mini-meta"><span>📞 ${escapeHtml(item.phone || '-')}</span><span>Aktiv qaimə: ${item.activeInvoiceCount}</span></div>
+        </div>
+        <div class="customer-row-actions">
+          <button class="action-btn edit" onclick="toggleCustomerDetail('${item.id}')">Ətraflı</button>
+          <button class="action-btn return" onclick="toggleCustomerHistory('${item.id}')">Tarixçə</button>
+          <button class="action-btn close" onclick="openCustomerTransactionModal('${item.id}','debt-add')">Borc əlavə et</button>
+          <button class="action-btn print" onclick="openCustomerTransactionModal('${item.id}','payment')">Ödəniş et</button>
+          <button class="action-btn return" onclick="openCustomerTransactionModal('${item.id}','deposit-to-debt')">Depozitlə ödə</button>
+          <button class="action-btn edit" onclick="openCustomerModal('${item.id}')">Edit</button>
+          <button class="action-btn delete" onclick="deleteCustomer('${item.id}')">Sil</button>
+        </div>
+      </div>
+      <div class="customer-expand-area hidden" id="detail-${item.id}"></div>
+      <div class="customer-expand-area hidden" id="history-${item.id}"></div>
+    </div>`).join('');
+}
+
+function customerDetailHtml(p) {
+  const line = inv => {
+    const st = profileInvoiceStatus(inv);
+    return `<div class="cust-inv-line"><div><strong>${escapeHtml(inv.invoiceNo || '-')}</strong> <span class="badge ${st.cls}">${st.label}</span></div>` +
+      `<div class="simple-item-sub">İcarə: ${formatDate(inv.invoiceDate)} · Qaytarma: ${formatDate(inv.returnDate)}</div>` +
+      `<div class="simple-item-sub">Ümumi: ${formatMoney(inv.totalAmount)} · Borc: ${formatMoney(inv.remainingDebt)}</div>` +
+      `<button class="action-btn edit" onclick="editInvoice('${inv.id}')">Bax</button></div>`;
+  };
+  return `
+    <div class="customer-detail-grid">
+      <div class="customer-detail-card"><strong>Telefon</strong><div class="simple-item-sub">${escapeHtml(p.phone || '-')}</div></div>
+      <div class="customer-detail-card"><strong>Əlavə telefon</strong><div class="simple-item-sub">${escapeHtml(p.extraPhone || '-')}</div></div>
+      <div class="customer-detail-card"><strong>Ünvan</strong><div class="simple-item-sub">${escapeHtml(p.address || '-')}</div></div>
+      <div class="customer-detail-card"><strong>Aktiv borc</strong><div class="simple-item-sub">${formatMoney(p.debt)}</div></div>
+      <div class="customer-detail-card"><strong>Qalan depozit</strong><div class="simple-item-sub">${formatMoney(p.deposit)}</div></div>
+    </div>
+    <div class="customer-invoice-split">
+      <div class="cust-inv-col"><h4>Aktiv qaimələr (${p.activeInvoices.length})</h4>${p.activeInvoices.length ? p.activeInvoices.map(line).join('') : '<div class="simple-item-sub">Aktiv qaimə yoxdur</div>'}</div>
+      <div class="cust-inv-col"><h4>Köhnə qaimələr (${p.closedInvoices.length})</h4>${p.closedInvoices.length ? p.closedInvoices.map(line).join('') : '<div class="simple-item-sub">Köhnə qaimə yoxdur</div>'}</div>
+    </div>
+    <div class="customer-actions-grid">
+      <button class="action-btn return" onclick="openCustomerTransactionModal('${p.id}','deposit-add')">Depozit əlavə et</button>
+      <button class="action-btn edit" onclick="openCustomerTransactionModal('${p.id}','deposit-remove')">Depozit çıx</button>
+    </div>`;
+}
+
+function customerHistoryHtml(p) {
+  if (!p.ledger || !p.ledger.length) return '<div class="empty-history">Tarixçə yoxdur</div>';
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>Tarix</th><th>Əməliyyat</th><th>Məbləğ</th><th>Qeyd</th><th>Borc dəyişimi</th><th>Depozit dəyişimi</th></tr></thead>
+    <tbody>${p.ledger.map(e => `
+      <tr>
+        <td>${formatDateTime(e.date)}</td>
+        <td><span class="history-type-badge system">${escapeHtml(e.type || '')}</span></td>
+        <td>${formatMoney(e.amount)}</td>
+        <td>${escapeHtml(e.note || '')}${e.invoiceNo ? `<div class="history-note-muted">Qaimə: ${escapeHtml(e.invoiceNo)}</div>` : ''}</td>
+        <td><span class="mono-amount ${amountClass(e.debtChange)}">${formatSignedMoney(e.debtChange)}</span></td>
+        <td><span class="mono-amount ${amountClass(e.depositChange)}">${formatSignedMoney(e.depositChange)}</span></td>
+      </tr>`).join('')}</tbody></table></div>`;
+}
+
+async function toggleCustomerPanelApi(id, kind) {
+  const panel = document.getElementById((kind === 'detail' ? 'detail-' : 'history-') + id);
+  if (!panel) return;
+  if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+  panel.innerHTML = '<div class="simple-item-sub">Yüklənir…</div>';
+  let p;
+  try { p = await API.customers.profile(id); }
+  catch (e) { panel.innerHTML = '<div class="simple-item-sub">Xəta: ' + escapeHtml(e.message || '') + '</div>'; return; }
+  panel.innerHTML = (kind === 'detail') ? customerDetailHtml(p) : customerHistoryHtml(p);
+}
+window.toggleCustomerDetail = function (id) { toggleCustomerPanelApi(id, 'detail'); };
+window.toggleCustomerHistory = function (id) { toggleCustomerPanelApi(id, 'history'); };
+
+async function saveCustomerTransaction() {
   if (!activeCustomerTransaction) return;
-  const index = customers.findIndex(item => String(item.id) === String(activeCustomerTransaction.customerId));
-  if (index === -1) return;
+  const customerId = Number(activeCustomerTransaction.customerId);
   const amount = Number(customerTransactionAmountInput.value || 0);
   if (amount <= 0) return alert('Məbləği düzgün yaz.');
   const date = customerTransactionDateInput.value ? new Date(customerTransactionDateInput.value).toISOString() : new Date().toISOString();
   const note = customerTransactionNoteInput.value.trim();
   const actionType = activeCustomerTransaction.actionType;
-  const customer = ensureCustomerShape(customers[index]);
-  if (actionType === 'payment') {
-    const result = allocatePaymentAcrossInvoices(customer, amount, { date, note: note || 'Müştəri ödənişi' });
-    if (result.usedAmount <= 0) return alert('Açıq borc yoxdur.');
-  } else if (actionType === 'deposit-to-debt') {
-    const ledger = getCustomerLedger(customer);
-    if (amount > Number(ledger.deposit || 0)) return alert('Bu qədər depozit yoxdur.');
-    const result = allocatePaymentAcrossInvoices(customer, amount, { date, note: note || 'Depozitlə borc bağlandı', fromDeposit: true });
-    if (result.usedAmount <= 0) return alert('Açıq borc yoxdur.');
-    customer.history.unshift({ id:`hist-manual-${Date.now()}`, date, type:'Depozit çıxılıb', amount:result.usedAmount, note: note || 'Depozitlə borc bağlandı', debtChange:0, depositChange:-result.usedAmount, source:'manual' });
-    customers[index] = customer;
-    setStorageData(STORAGE_KEYS.customers, customers);
-  } else {
-    const config = {
-      'debt-add': { type: 'Borc əlavə olunub', debtChange: amount, depositChange: 0 },
-      'deposit-add': { type: 'Depozit əlavə olunub', debtChange: 0, depositChange: amount },
-      'deposit-remove': { type: 'Depozit çıxılıb', debtChange: 0, depositChange: -amount }
-    }[actionType];
-    customer.history.unshift({ id:`hist-manual-${Date.now()}`, date, type:config.type, amount, note, debtChange:config.debtChange, depositChange:config.depositChange, source:'manual' });
-    customers[index] = customer;
-    setStorageData(STORAGE_KEYS.customers, customers);
+  const dto = { customerId, amount, date, note };
+
+  try {
+    if (actionType === 'debt-add') {
+      await API.ledger.addDebt(dto);
+    } else if (actionType === 'deposit-add') {
+      await API.ledger.addDeposit(dto);
+    } else if (actionType === 'deposit-remove') {
+      await API.ledger.withdrawDeposit(dto);
+    } else if (actionType === 'payment') {
+      await API.ledger.payDebt(dto);
+    } else if (actionType === 'deposit-to-debt') {
+      // Depoziti çıx, sonra borca köçür (iki addım)
+      await API.ledger.withdrawDeposit(dto);
+      await API.ledger.payDebt(dto);
+    }
+  } catch (e) {
+    return alert(e.message || 'Əməliyyat alınmadı.');
   }
+
   closeModal(customerTransactionModal);
   activeCustomerTransaction = null;
-  renderAll();
+  renderCustomers();
 }
 
 (function ensureV7Styles(){
@@ -3065,26 +3103,23 @@ window.closeInvoice = function(invoiceId) {
   if (!invoice) return;
   if (invoice.isClosed) return alert('Bu qaimə artıq bağlanıb.');
   activeInvoiceCloseId = invoiceId;
-  const ctx = getInvoiceCloseContext(invoice);
   invoiceCloseModalTitle.textContent = `Qaiməni bağla — ${invoice.invoiceNo || '-'}`;
   invoiceCloseSummaryNo.textContent = invoice.invoiceNo || '-';
-  invoiceCloseSummaryDebt.textContent = formatMoney(ctx.remainingDebt);
-  invoiceCloseSummaryDeposit.textContent = formatMoney(ctx.availableDeposit);
+  invoiceCloseSummaryDebt.textContent = formatMoney(invoice.remainingDebt);
+  invoiceCloseSummaryDeposit.textContent = formatMoney(invoice.depositAmount);
   invoiceCloseDateInput.value = toDateTimeLocalValue();
-  invoiceClosePaidInput.value = Math.max(ctx.remainingDebt, 0).toFixed(2);
+  invoiceClosePaidInput.value = Math.max(Number(invoice.remainingDebt || 0), 0).toFixed(2);
   invoiceCloseDepositReturnedInput.value = '0';
   invoiceClosePenaltyInput.value = '0';
   invoiceClosePenaltyReasonInput.value = '';
   invoiceCloseNoteInput.value = '';
-  updateInvoiceCloseHelper();
+  try { if (typeof updateInvoiceCloseHelper === 'function') updateInvoiceCloseHelper(); } catch (e) {}
   openModal(invoiceCloseModal);
 };
 
-function saveInvoiceCloseOperation() {
-  const index = invoices.findIndex(item => String(item.id) === String(activeInvoiceCloseId));
-  if (index === -1) return;
-  const invoice = cloneData(invoices[index]);
-  const ctx = getInvoiceCloseContext(invoice);
+async function saveInvoiceCloseOperation() {
+  const invoice = invoices.find(item => String(item.id) === String(activeInvoiceCloseId));
+  if (!invoice) return;
   const closeDate = invoiceCloseDateInput.value ? new Date(invoiceCloseDateInput.value) : new Date();
   if (Number.isNaN(closeDate.getTime())) return alert('Tarix düzgün deyil.');
   const paidNow = Number(invoiceClosePaidInput.value || 0);
@@ -3094,49 +3129,20 @@ function saveInvoiceCloseOperation() {
   const note = invoiceCloseNoteInput.value.trim();
 
   if (paidNow < 0 || depositReturned < 0 || penaltyAmount < 0) return alert('Məbləğlər mənfi ola bilməz.');
-  if (depositReturned > ctx.availableDeposit) return alert('Bu qədər depozit qaytarmaq olmaz.');
+  if (depositReturned > Number(invoice.depositAmount || 0)) return alert('Bu qədər depozit qaytarmaq olmaz.');
   if (penaltyAmount > 0 && !penaltyReason) return alert('Cərimə səbəbini yaz.');
 
-  invoice.paymentHistory = normalizePaymentHistory(invoice);
-  if (paidNow > 0) {
-    invoice.paymentHistory.unshift({
-      id: `pay-${Date.now()}`,
-      date: closeDate.toISOString(),
-      amount: Number(paidNow.toFixed(2)),
-      note: note || 'Bağlama zamanı ödəniş',
-      direction: 'in'
-    });
+  const iso = closeDate.toISOString();
+  const cid = Number(invoice.customerId);
+  try {
+    if (penaltyAmount > 0) await API.ledger.addDebt({ customerId: cid, amount: penaltyAmount, date: iso, note: penaltyReason || 'Cərimə' });
+    if (paidNow > 0) await API.payments.add({ invoiceId: Number(invoice.id), amount: paidNow, direction: 'In', date: iso, note: note || 'Bağlama ödənişi' });
+    if (depositReturned > 0) await API.ledger.withdrawDeposit({ customerId: cid, amount: depositReturned, date: iso, note: note || 'Bağlamada depozit qaytarıldı' });
+    await API.invoices.close(invoice.id);
+  } catch (e) {
+    return alert(e.message || 'Bağlama alınmadı.');
   }
 
-  if (depositReturned > 0) {
-    invoice.depositReturnedHistory = invoice.depositReturnedHistory || [];
-    invoice.depositReturnedHistory.unshift({
-      id: `depout-${Date.now()}`,
-      date: closeDate.toISOString(),
-      amount: Number(depositReturned.toFixed(2)),
-      note: note || 'Bağlama zamanı depozit qaytarıldı'
-    });
-  }
-
-  invoice.closingHistory = invoice.closingHistory || [];
-  invoice.closingHistory.unshift({
-    id: `close-${Date.now()}`,
-    date: closeDate.toISOString(),
-    penaltyAmount: Number(penaltyAmount.toFixed(2)),
-    penaltyReason,
-    paidNow: Number(paidNow.toFixed(2)),
-    depositReturned: Number(depositReturned.toFixed(2)),
-    note
-  });
-
-  invoice.isClosed = true;
-  invoice.closedAt = closeDate.toISOString();
-  invoice.updatedAt = new Date().toISOString();
-  recalcInvoiceTotals(invoice);
-
-  invoices[index] = invoice;
-  syncInvoiceCustomerHistory(invoice);
-  setStorageData(STORAGE_KEYS.invoices, invoices);
   closeModal(invoiceCloseModal);
   activeInvoiceCloseId = null;
   renderAll();
@@ -3337,6 +3343,27 @@ invoiceViewPrintBtn?.addEventListener('click', () => {
 invoiceViewEditBtn?.addEventListener('click', () => { if (activeViewInvoiceId) editInvoice(activeViewInvoiceId); });
 invoiceViewDeleteBtn?.addEventListener('click', () => { if (activeViewInvoiceId) deleteInvoice(activeViewInvoiceId); });
 invoiceViewModal?.addEventListener('click', e => { if (e.target === invoiceViewModal) closeModal(invoiceViewModal); });
+
+// ===== Modul 4: Çap — SQL Server (API) override =====
+window.printInvoice = async function(invoiceId){
+  let data;
+  try { data = await API.invoices.print(invoiceId); }
+  catch (e) { return alert(e.message || 'Çap məlumatı yüklənmədi.'); }
+  const inv = data.invoice || {};
+  const esc = v => String(v ?? '-').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const m = v => Number(v || 0).toFixed(2) + ' AZN';
+  const rows = (inv.items || []).map(it => `<tr><td>${esc(it.category)}</td><td>${esc(it.label || it.size || '')}</td><td class="center">${Number(it.quantity || 0)}</td><td class="center">${esc(it.unit || 'ədəd')}</td><td class="money">${m(it.customPrice)}</td><td class="money">${m(it.subtotal)}</td></tr>`).join('');
+  const w = window.open('', '_blank', 'width=900,height=900');
+  if (!w) return;
+  w.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>Qaimə ${esc(inv.invoiceNo)}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{font-size:20px;margin:0 0 4px}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #cbd5e1;padding:6px 8px;font-size:13px;text-align:left}th{background:#f8fafc}.center{text-align:center}.money{text-align:right}.muted{color:#555;font-size:12px}.tot{margin-top:14px;font-size:14px}</style></head><body>`
+    + `<h1>${esc(data.companyName)} — Qaimə ${esc(inv.invoiceNo)}</h1>`
+    + `<div class="muted">${esc(data.branchName || '')} · Çap: ${formatDate(new Date().toISOString())}</div>`
+    + `<p><strong>Müştəri:</strong> ${esc(inv.customerName)} · ${esc(inv.phone || '-')}<br><strong>İcarə:</strong> ${formatDate(inv.invoiceDate)} · <strong>Qaytarma:</strong> ${formatDate(inv.returnDate)}</p>`
+    + `<table><thead><tr><th>Kateqoriya</th><th>Ad/Ölçü</th><th>Say</th><th>Vahid</th><th>Qiymət</th><th>Cəm</th></tr></thead><tbody>${rows || '<tr><td colspan="6">Mal yoxdur</td></tr>'}</tbody></table>`
+    + `<div class="tot"><strong>Ümumi:</strong> ${m(inv.totalAmount)} · <strong>Ödənilib:</strong> ${m(inv.paidAmount)} · <strong>Depozit:</strong> ${m(inv.depositAmount)} · <strong>Qalıq borc:</strong> ${m(inv.remainingDebt)}</div>`
+    + `</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 250);
+};
 
 // Apply v19 overrides after page load.
 try { renderAll(); } catch (e) { console.error('v19 render refresh error', e); }

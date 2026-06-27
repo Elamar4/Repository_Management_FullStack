@@ -65,6 +65,10 @@
       "PackagePath": "staticwebassets\\assets\\img\\kapital-logo.png"
     },
     {
+      "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\api.js",
+      "PackagePath": "staticwebassets\\assets\\js\\api.js"
+    },
+    {
       "Id": "C:\\Users\\Elmar\\OneDrive\\İş masası\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\wwwroot\\assets\\js\\app-shell.js",
       "PackagePath": "staticwebassets\\assets\\js\\app-shell.js"
     },

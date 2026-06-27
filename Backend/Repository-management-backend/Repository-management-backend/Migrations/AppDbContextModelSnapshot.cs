@@ -126,6 +126,158 @@ namespace Repository_management_backend.Migrations
                     b.HasIndex("ParentId");
 
                     b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BranchId = 1,
+                            Kind = "Standard",
+                            Name = "Lesa",
+                            Price = 50m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BranchId = 1,
+                            Kind = "Standard",
+                            Name = "Təkərli lesa",
+                            Price = 5m,
+                            RentType = "Daily",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BranchId = 1,
+                            Kind = "Standard",
+                            Name = "Dəmir dirək",
+                            Price = 30m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BranchId = 1,
+                            Kind = "Standard",
+                            Name = "Taxta",
+                            Price = 10m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BranchId = 1,
+                            Kind = "Standard",
+                            Name = "Vibrator",
+                            Price = 8m,
+                            RentType = "Daily",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            BranchId = 2,
+                            Kind = "Standard",
+                            Name = "Lesa",
+                            Price = 50m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            BranchId = 2,
+                            Kind = "Standard",
+                            Name = "Təkərli lesa",
+                            Price = 5m,
+                            RentType = "Daily",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            BranchId = 2,
+                            Kind = "Standard",
+                            Name = "Dəmir dirək",
+                            Price = 30m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            BranchId = 2,
+                            Kind = "Standard",
+                            Name = "Taxta",
+                            Price = 10m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            BranchId = 2,
+                            Kind = "Standard",
+                            Name = "Vibrator",
+                            Price = 8m,
+                            RentType = "Daily",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            BranchId = 3,
+                            Kind = "Standard",
+                            Name = "Lesa",
+                            Price = 50m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            BranchId = 3,
+                            Kind = "Standard",
+                            Name = "Təkərli lesa",
+                            Price = 5m,
+                            RentType = "Daily",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            BranchId = 3,
+                            Kind = "Standard",
+                            Name = "Dəmir dirək",
+                            Price = 30m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            BranchId = 3,
+                            Kind = "Standard",
+                            Name = "Taxta",
+                            Price = 10m,
+                            RentType = "Monthly",
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            BranchId = 3,
+                            Kind = "Standard",
+                            Name = "Vibrator",
+                            Price = 8m,
+                            RentType = "Daily",
+                            Unit = "ədəd"
+                        });
                 });
 
             modelBuilder.Entity("Repository_management_backend.Models.Entities.Customer", b =>
@@ -171,6 +323,56 @@ namespace Repository_management_backend.Migrations
                     b.HasIndex("BranchId", "Phone");
 
                     b.ToTable("Customers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BranchId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Test Müştəri 1",
+                            Phone = "+994 50 100 10 01"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BranchId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Test Müştəri 2",
+                            Phone = "+994 50 100 10 02"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BranchId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Test Müştəri 3",
+                            Phone = "+994 50 100 10 03"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BranchId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Test Müştəri 4",
+                            Phone = "+994 50 100 10 04"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BranchId = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Test Müştəri 5",
+                            Phone = "+994 50 100 10 05"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            BranchId = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Test Müştəri 6",
+                            Phone = "+994 50 100 10 06"
+                        });
                 });
 
             modelBuilder.Entity("Repository_management_backend.Models.Entities.CustomerLedgerEntry", b =>
@@ -222,6 +424,20 @@ namespace Repository_management_backend.Migrations
                     b.HasIndex("InvoiceId");
 
                     b.ToTable("CustomerLedgerEntries");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Amount = 500m,
+                            CustomerId = 1,
+                            Date = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DebtChange = 300m,
+                            DepositChange = 100m,
+                            InvoiceId = 1,
+                            Source = "invoice",
+                            Type = "Mal götürüb (qaimə #0001)"
+                        });
                 });
 
             modelBuilder.Entity("Repository_management_backend.Models.Entities.ExtensionHistory", b =>
@@ -287,6 +503,22 @@ namespace Repository_management_backend.Migrations
                         .IsUnique();
 
                     b.ToTable("InventoryStocks");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BranchId = 1,
+                            Name = "Lesa",
+                            TotalCount = 20m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BranchId = 1,
+                            Name = "Taxta",
+                            TotalCount = 100m
+                        });
                 });
 
             modelBuilder.Entity("Repository_management_backend.Models.Entities.Invoice", b =>
@@ -371,6 +603,26 @@ namespace Repository_management_backend.Migrations
                         .IsUnique();
 
                     b.ToTable("Invoices");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BranchId = 1,
+                            CreatedAt = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CustomerId = 1,
+                            CustomerNameSnapshot = "Test Müştəri 1",
+                            DepositAmount = 100m,
+                            InvoiceDate = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            InvoiceNo = "0001",
+                            IsClosed = false,
+                            PaidAmount = 200m,
+                            Phone = "+994 50 100 10 01",
+                            RemainingDebt = 300m,
+                            ReturnDate = new DateTime(2025, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            TotalAmount = 500m,
+                            UpdatedAt = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("Repository_management_backend.Models.Entities.InvoiceItem", b =>
@@ -501,6 +753,36 @@ namespace Repository_management_backend.Migrations
                     b.HasIndex("InvoiceId");
 
                     b.ToTable("InvoiceItems");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = "Lesa",
+                            CustomPrice = 50m,
+                            InvoiceId = 1,
+                            IsFixedFee = false,
+                            IsRecurring = true,
+                            IsReturnable = true,
+                            Quantity = 5m,
+                            ReturnedQuantity = 0m,
+                            Subtotal = 250m,
+                            Unit = "ədəd"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = "Taxta",
+                            CustomPrice = 10m,
+                            InvoiceId = 1,
+                            IsFixedFee = false,
+                            IsRecurring = true,
+                            IsReturnable = true,
+                            Quantity = 25m,
+                            ReturnedQuantity = 0m,
+                            Subtotal = 250m,
+                            Unit = "ədəd"
+                        });
                 });
 
             modelBuilder.Entity("Repository_management_backend.Models.Entities.Payment", b =>

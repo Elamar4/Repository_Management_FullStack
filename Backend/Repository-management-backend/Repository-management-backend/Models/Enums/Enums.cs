@@ -7,7 +7,7 @@ namespace Repository_management_backend.Models.Enums
         Manager,
         User
     }
-
+   
     /// <summary>Kateqoriya növü.</summary>
     public enum CategoryKind
     {
