@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Customers
-{
-    /// <summary>Tam müştəri profili: məlumat + borc/depozit + aktiv/köhnə qaimələr + tarixçə.</summary>
-    public class CustomerProfileDto
+{    public class CustomerProfileDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

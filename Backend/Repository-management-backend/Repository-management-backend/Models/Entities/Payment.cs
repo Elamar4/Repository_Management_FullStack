@@ -2,7 +2,6 @@ using Repository_management_backend.Models.Enums;
 
 namespace Repository_management_backend.Models.Entities
 {
-    /// <summary>Qaimə ödənişi. PaidAmount = Σ(In) − Σ(Out).</summary>
     public class Payment
     {
         public int Id { get; set; }

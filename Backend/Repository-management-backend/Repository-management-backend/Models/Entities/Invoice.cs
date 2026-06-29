@@ -1,12 +1,10 @@
 namespace Repository_management_backend.Models.Entities
 {
-    /// <summary>Qaimə.</summary>
     public class Invoice
     {
         public int Id { get; set; }
-        public string InvoiceNo { get; set; } = string.Empty;   // filial daxilində unikal
+        public string InvoiceNo { get; set; } = string.Empty;
 
-        // Müştəri (FK + snapshot)
         public int CustomerId { get; set; }
         public Customer? Customer { get; set; }
         public string CustomerNameSnapshot { get; set; } = string.Empty;
@@ -15,27 +13,22 @@ namespace Repository_management_backend.Models.Entities
         public string? Address { get; set; }
         public string? Note { get; set; }
 
-        // Tarixlər
         public DateTime InvoiceDate { get; set; }
         public DateTime ReturnDate { get; set; }
 
-        // Maliyyə
         public decimal TotalAmount { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal DepositAmount { get; set; }
         public decimal RemainingDebt { get; set; }
 
-        // Vəziyyət
         public bool IsClosed { get; set; }
         public DateTime? ClosedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Filial
         public int BranchId { get; set; }
         public Branch? Branch { get; set; }
 
-        // Naviqasiyalar
         public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<ExtensionHistory> ExtensionHistory { get; set; } = new List<ExtensionHistory>();

@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Customers
-{
-    /// <summary>Müştəri profilində qaimə qısa görünüşü.</summary>
-    public class InvoiceSummaryDto
+{    public class InvoiceSummaryDto
     {
         public int Id { get; set; }
         public string InvoiceNo { get; set; } = string.Empty;

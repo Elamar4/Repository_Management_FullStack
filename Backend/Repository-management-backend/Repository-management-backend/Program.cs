@@ -13,20 +13,15 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC + JSON (enum-ları mətn kimi qəbul et/qaytar)
 builder.Services
     .AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// AutoMapper (v15 — cfg parametri məcburidir. Pulsuz Community tier istifadə olunur;
-// log xəbərdarlığını susdurmaq üçün automapper.io-dan pulsuz açar alıb cfg.LicenseKey-ə yaza bilərsiniz)
 builder.Services.AddAutoMapper(cfg => { }, typeof(UserProfile).Assembly);
 
-// FluentValidation (avtomatik validation + validator-ları registrasiya et)
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
 
-// Repository + Service qatları
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
@@ -50,22 +45,17 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
 
-// HttpContext (claims oxumaq + DbContext branch filter üçün)
 builder.Services.AddHttpContextAccessor();
 
-// EF Core — SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
     options
         .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-        // Invoice query filter + məcburi uşaq naviqasiyaları üçün benign xəbərdarlığı susdur
         .ConfigureWarnings(w =>
             w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning)));
 
-// Security servisləri
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-// Authentication — Cookie (production sərtləşdirməsi)
 var isProd = builder.Environment.IsProduction();
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -82,7 +72,6 @@ builder.Services
         options.Cookie.SecurePolicy = isProd ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
     });
 
-// Authorization — rol əsaslı policy-lər
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("ManageUsers", p => p.RequireRole("Admin"));
@@ -93,7 +82,6 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-// Migrasiyaları tətbiq et + demo işçiləri seed et
 using (var scope = app.Services.CreateScope())
 {
     var sp = scope.ServiceProvider;
@@ -107,11 +95,10 @@ using (var scope = app.Services.CreateScope())
     {
         sp.GetRequiredService<ILogger<Program>>()
           .LogError(ex, "Migrasiya/seed zamanı xəta baş verdi.");
-        throw; // startup-da görünməsi üçün yenidən atılır
+        throw;
     }
 }
 
-// HTTP pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -126,10 +113,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// API controller-ləri (attribute route) açıq şəkildə map et
 app.MapControllers();
 
-// MVC səhifələri. Tətbiq Login-dən başlayır. Dashboard: /Home/Index, Yeni qaimə: /Invoice/Create
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");

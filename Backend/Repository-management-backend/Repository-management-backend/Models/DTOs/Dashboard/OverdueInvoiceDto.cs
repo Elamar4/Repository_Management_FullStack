@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Dashboard
-{
-    /// <summary>Vaxtı keçmiş açıq qaimə.</summary>
-    public class OverdueInvoiceDto
+{    public class OverdueInvoiceDto
     {
         public int InvoiceId { get; set; }
         public string InvoiceNo { get; set; } = string.Empty;

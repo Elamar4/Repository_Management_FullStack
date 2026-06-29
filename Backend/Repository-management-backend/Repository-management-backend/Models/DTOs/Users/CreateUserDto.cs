@@ -1,9 +1,7 @@
 using Repository_management_backend.Models.Enums;
 
 namespace Repository_management_backend.Models.DTOs.Users
-{
-    /// <summary>Yeni işçi yaratmaq üçün. Validation FluentValidation-dadır.</summary>
-    public class CreateUserDto
+{    public class CreateUserDto
     {
         public string Name { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;

@@ -16,6 +16,6 @@ namespace Repository_management_backend.Models.DTOs.Reports
         public int Count { get; set; }
         public decimal TotalIn { get; set; }
         public decimal TotalOut { get; set; }
-        public decimal Net { get; set; }   // In − Out
+        public decimal Net { get; set; }
     }
 }

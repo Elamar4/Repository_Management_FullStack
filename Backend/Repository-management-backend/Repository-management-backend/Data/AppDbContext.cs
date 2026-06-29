@@ -8,9 +8,7 @@ namespace Repository_management_backend.Data
 {
     public class AppDbContext : DbContext
     {
-        // Cari filial (cookie claim-dən). Branch izolyasiya query filter-ləri bunu işlədir.
         private readonly int _currentBranchId;
-        // Admin filial məhdudiyyətinə tabe deyil — bütün filialları görür/idarə edir.
         private readonly bool _isAdmin;
 
         public AppDbContext(DbContextOptions<AppDbContext> options,
@@ -35,7 +33,6 @@ namespace Repository_management_backend.Data
         public DbSet<ExtensionHistory> ExtensionHistories => Set<ExtensionHistory>();
         public DbSet<ReturnHistory> ReturnHistories => Set<ReturnHistory>();
 
-        // Bütün decimal sahələr üçün dəqiqlik (money)
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.Properties<decimal>().HavePrecision(18, 2);
@@ -45,7 +42,6 @@ namespace Repository_management_backend.Data
         {
             base.OnModelCreating(b);
 
-            // ---------------- Branch ----------------
             b.Entity<Branch>(e =>
             {
                 e.Property(x => x.Code).HasMaxLength(50).IsRequired();
@@ -53,7 +49,6 @@ namespace Repository_management_backend.Data
                 e.HasIndex(x => x.Code).IsUnique();
             });
 
-            // ---------------- User ----------------
             b.Entity<User>(e =>
             {
                 e.Property(x => x.Name).HasMaxLength(150).IsRequired();
@@ -66,7 +61,6 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ---------------- Customer ----------------
             b.Entity<Customer>(e =>
             {
                 e.Property(x => x.Name).HasMaxLength(200).IsRequired();
@@ -79,7 +73,6 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ---------------- Invoice ----------------
             b.Entity<Invoice>(e =>
             {
                 e.Property(x => x.InvoiceNo).HasMaxLength(60).IsRequired();
@@ -88,7 +81,6 @@ namespace Repository_management_backend.Data
                 e.Property(x => x.ExtraPhone).HasMaxLength(50);
                 e.Property(x => x.Address).HasMaxLength(400);
                 e.Property(x => x.Note).HasMaxLength(1000);
-                // Filial daxilində qaimə nömrəsi unikal
                 e.HasIndex(x => new { x.BranchId, x.InvoiceNo }).IsUnique();
                 e.HasOne(x => x.Branch).WithMany(x => x.Invoices)
                     .HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
@@ -96,7 +88,6 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ---------------- InvoiceItem ----------------
             b.Entity<InvoiceItem>(e =>
             {
                 e.Property(x => x.Category).HasMaxLength(80).IsRequired();
@@ -110,7 +101,6 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ---------------- Payment ----------------
             b.Entity<Payment>(e =>
             {
                 e.Property(x => x.Direction).HasConversion<string>().HasMaxLength(10);
@@ -119,7 +109,6 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ---------------- CustomerLedgerEntry ----------------
             b.Entity<CustomerLedgerEntry>(e =>
             {
                 e.Property(x => x.Type).HasMaxLength(80).IsRequired();
@@ -127,12 +116,10 @@ namespace Repository_management_backend.Data
                 e.Property(x => x.Source).HasMaxLength(20);
                 e.HasOne(x => x.Customer).WithMany(x => x.LedgerEntries)
                     .HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Cascade);
-                // Çoxlu cascade yolundan qaçmaq üçün Invoice → Ledger Restrict
                 e.HasOne(x => x.Invoice).WithMany()
                     .HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ---------------- Category ----------------
             b.Entity<Category>(e =>
             {
                 e.Property(x => x.Name).HasMaxLength(150).IsRequired();
@@ -147,17 +134,14 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ---------------- InventoryStock ----------------
             b.Entity<InventoryStock>(e =>
             {
                 e.Property(x => x.Name).HasMaxLength(150).IsRequired();
-                // Filial daxilində mal adı unikal
                 e.HasIndex(x => new { x.BranchId, x.Name }).IsUnique();
                 e.HasOne(x => x.Branch).WithMany(x => x.InventoryStocks)
                     .HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ---------------- ExtensionHistory ----------------
             b.Entity<ExtensionHistory>(e =>
             {
                 e.Property(x => x.Mode).HasMaxLength(20);
@@ -166,7 +150,6 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ---------------- ReturnHistory ----------------
             b.Entity<ReturnHistory>(e =>
             {
                 e.Property(x => x.Note).HasMaxLength(500);
@@ -174,23 +157,17 @@ namespace Repository_management_backend.Data
                     .HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ---------------- BRANCH İZOLYASİYASI (Global Query Filter) ----------------
-            // Hər sorğu avtomatik cari filiala görə süzülür. _currentBranchId cookie claim-dən gəlir.
-            // Admin (_isAdmin) bütün filialları görür; digər rollar yalnız öz filialını.
             b.Entity<Customer>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
             b.Entity<Invoice>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
             b.Entity<Category>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
             b.Entity<InventoryStock>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
 
-            // ---------------- Seed: Filiallar (migration ilə) ----------------
             b.Entity<Branch>().HasData(
                 new Branch { Id = 1, Code = "merdekan", Name = "Mərdəkan filialı", IsActive = true },
                 new Branch { Id = 2, Code = "pirsagi", Name = "Pirşağı filialı", IsActive = true },
                 new Branch { Id = 3, Code = "baku", Name = "Bakı Mərkəz filialı", IsActive = true }
             );
 
-            // ---------------- Seed: Standart mallar (hər filial üçün) ----------------
-            // Id-lər: filial1 → 1-5, filial2 → 6-10, filial3 → 11-15
             var standardGoods = new (string Name, decimal Price, string Unit, RentType Rent)[]
             {
                 ("Lesa",          50m, "ədəd", RentType.Monthly),
@@ -217,62 +194,59 @@ namespace Repository_management_backend.Data
                 }
             b.Entity<Category>().HasData(categorySeed);
 
-            // ---------------- Seed: Anbar qalığı (filial 1) ----------------
-            b.Entity<InventoryStock>().HasData(
-                new InventoryStock { Id = 1, BranchId = 1, Name = "Lesa", TotalCount = 20m },
-                new InventoryStock { Id = 2, BranchId = 1, Name = "Taxta", TotalCount = 100m }
-            );
+            //b.Entity<InventoryStock>().HasData(
+            //    new InventoryStock { Id = 1, BranchId = 1, Name = "Lesa", TotalCount = 20m },
+            //    new InventoryStock { Id = 2, BranchId = 1, Name = "Taxta", TotalCount = 100m }
+            //);
 
-            // ---------------- Seed: Test müştərilər ----------------
-            var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            b.Entity<Customer>().HasData(
-                new Customer { Id = 1, BranchId = 1, Name = "Test Müştəri 1", Phone = "+994 50 100 10 01", CreatedAt = seedDate },
-                new Customer { Id = 2, BranchId = 1, Name = "Test Müştəri 2", Phone = "+994 50 100 10 02", CreatedAt = seedDate },
-                new Customer { Id = 3, BranchId = 2, Name = "Test Müştəri 3", Phone = "+994 50 100 10 03", CreatedAt = seedDate },
-                new Customer { Id = 4, BranchId = 2, Name = "Test Müştəri 4", Phone = "+994 50 100 10 04", CreatedAt = seedDate },
-                new Customer { Id = 5, BranchId = 3, Name = "Test Müştəri 5", Phone = "+994 50 100 10 05", CreatedAt = seedDate },
-                new Customer { Id = 6, BranchId = 3, Name = "Test Müştəri 6", Phone = "+994 50 100 10 06", CreatedAt = seedDate }
-            );
+            //var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            //b.Entity<Customer>().HasData(
+            //    new Customer { Id = 1, BranchId = 1, Name = "Test Müştəri 1", Phone = "+994 50 100 10 01", CreatedAt = seedDate },
+            //    new Customer { Id = 2, BranchId = 1, Name = "Test Müştəri 2", Phone = "+994 50 100 10 02", CreatedAt = seedDate },
+            //    new Customer { Id = 3, BranchId = 2, Name = "Test Müştəri 3", Phone = "+994 50 100 10 03", CreatedAt = seedDate },
+            //    new Customer { Id = 4, BranchId = 2, Name = "Test Müştəri 4", Phone = "+994 50 100 10 04", CreatedAt = seedDate },
+            //    new Customer { Id = 5, BranchId = 3, Name = "Test Müştəri 5", Phone = "+994 50 100 10 05", CreatedAt = seedDate },
+            //    new Customer { Id = 6, BranchId = 3, Name = "Test Müştəri 6", Phone = "+994 50 100 10 06", CreatedAt = seedDate }
+            //);
 
-            // ---------------- Seed: Nümunə qaimə (filial 1, müştəri 1) ----------------
-            var invDate = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-            var retDate = new DateTime(2025, 7, 1, 0, 0, 0, DateTimeKind.Utc);
-            b.Entity<Invoice>().HasData(new Invoice
-            {
-                Id = 1,
-                InvoiceNo = "0001",
-                BranchId = 1,
-                CustomerId = 1,
-                CustomerNameSnapshot = "Test Müştəri 1",
-                Phone = "+994 50 100 10 01",
-                InvoiceDate = invDate,
-                ReturnDate = retDate,
-                TotalAmount = 500m,
-                PaidAmount = 200m,
-                DepositAmount = 100m,
-                RemainingDebt = 300m,
-                IsClosed = false,
-                CreatedAt = invDate,
-                UpdatedAt = invDate
-            });
+            //var invDate = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+            //var retDate = new DateTime(2025, 7, 1, 0, 0, 0, DateTimeKind.Utc);
+            //b.Entity<Invoice>().HasData(new Invoice
+            //{
+            //    Id = 1,
+            //    InvoiceNo = "0001",
+            //    BranchId = 1,
+            //    CustomerId = 1,
+            //    CustomerNameSnapshot = "Test Müştəri 1",
+            //    Phone = "+994 50 100 10 01",
+            //    InvoiceDate = invDate,
+            //    ReturnDate = retDate,
+            //    TotalAmount = 500m,
+            //    PaidAmount = 200m,
+            //    DepositAmount = 100m,
+            //    RemainingDebt = 300m,
+            //    IsClosed = false,
+            //    CreatedAt = invDate,
+            //    UpdatedAt = invDate
+            //});
 
-            b.Entity<InvoiceItem>().HasData(
-                new InvoiceItem { Id = 1, InvoiceId = 1, Category = "Lesa", Unit = "ədəd", Quantity = 5m, CustomPrice = 50m, Subtotal = 250m, IsReturnable = true, IsRecurring = true, IsFixedFee = false, ReturnedQuantity = 0m },
-                new InvoiceItem { Id = 2, InvoiceId = 1, Category = "Taxta", Unit = "ədəd", Quantity = 25m, CustomPrice = 10m, Subtotal = 250m, IsReturnable = true, IsRecurring = true, IsFixedFee = false, ReturnedQuantity = 0m }
-            );
+            //b.Entity<InvoiceItem>().HasData(
+            //    new InvoiceItem { Id = 1, InvoiceId = 1, Category = "Lesa", Unit = "ədəd", Quantity = 5m, CustomPrice = 50m, Subtotal = 250m, IsReturnable = true, IsRecurring = true, IsFixedFee = false, ReturnedQuantity = 0m },
+            //    new InvoiceItem { Id = 2, InvoiceId = 1, Category = "Taxta", Unit = "ədəd", Quantity = 25m, CustomPrice = 10m, Subtotal = 250m, IsReturnable = true, IsRecurring = true, IsFixedFee = false, ReturnedQuantity = 0m }
+            //);
 
-            b.Entity<CustomerLedgerEntry>().HasData(new CustomerLedgerEntry
-            {
-                Id = 1,
-                CustomerId = 1,
-                InvoiceId = 1,
-                Date = invDate,
-                Type = "Mal götürüb (qaimə #0001)",
-                Amount = 500m,
-                DebtChange = 300m,
-                DepositChange = 100m,
-                Source = "invoice"
-            });
+            //b.Entity<CustomerLedgerEntry>().HasData(new CustomerLedgerEntry
+            //{
+            //    Id = 1,
+            //    CustomerId = 1,
+            //    InvoiceId = 1,
+            //    Date = invDate,
+            //    Type = "Mal götürüb (qaimə #0001)",
+            //    Amount = 500m,
+            //    DebtChange = 300m,
+            //    DepositChange = 100m,
+            //    Source = "invoice"
+            //});
         }
     }
 }

@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Dashboard
-{
-    /// <summary>Günlük (icarə müddəti gündəlik) mal — açıq qaimələrdən.</summary>
-    public class DailyItemDto
+{    public class DailyItemDto
     {
         public int InvoiceId { get; set; }
         public string InvoiceNo { get; set; } = string.Empty;
@@ -10,7 +8,7 @@ namespace Repository_management_backend.Models.DTOs.Dashboard
         public string? Size { get; set; }
         public DateTime? DueDate { get; set; }
         public int? DayCount { get; set; }
-        public int DaysOverdue { get; set; }   // müsbət = vaxtı keçib
+        public int DaysOverdue { get; set; }
         public bool IsOverdue { get; set; }
     }
 }

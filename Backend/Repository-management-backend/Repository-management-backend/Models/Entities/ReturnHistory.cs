@@ -1,6 +1,5 @@
 namespace Repository_management_backend.Models.Entities
 {
-    /// <summary>Qaimə üzrə (qismən) qaytarma tarixçəsi.</summary>
     public class ReturnHistory
     {
         public int Id { get; set; }

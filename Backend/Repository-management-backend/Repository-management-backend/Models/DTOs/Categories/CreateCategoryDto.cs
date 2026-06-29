@@ -11,6 +11,6 @@ namespace Repository_management_backend.Models.DTOs.Categories
         public string? Unit { get; set; }
         public string? Note { get; set; }
         public RentType RentType { get; set; } = RentType.Monthly;
-        public int? ParentId { get; set; }   // Pole alt-kateqoriyası üçün ana kateqoriya
+        public int? ParentId { get; set; }
     }
 }

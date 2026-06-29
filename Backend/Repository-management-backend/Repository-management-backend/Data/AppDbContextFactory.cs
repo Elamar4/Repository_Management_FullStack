@@ -4,8 +4,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace Repository_management_backend.Data
 {
-    /// <summary>`dotnet ef` (design-time) üçün DbContext yaradıcısı.
-    /// HttpContext olmadığı üçün cari filial = 0 (migration sxemə təsir etmir).</summary>
     public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         public AppDbContext CreateDbContext(string[] args)

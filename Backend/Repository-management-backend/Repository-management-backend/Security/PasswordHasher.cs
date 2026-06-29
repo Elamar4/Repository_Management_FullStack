@@ -8,7 +8,6 @@ namespace Repository_management_backend.Security
         bool Verify(string password, string storedHash);
     }
 
-    /// <summary>PBKDF2 (SHA-256) əsaslı şifrə hash-i. Format: "{saltBase64}.{hashBase64}".</summary>
     public class PasswordHasher : IPasswordHasher
     {
         private const int SaltSize = 16;

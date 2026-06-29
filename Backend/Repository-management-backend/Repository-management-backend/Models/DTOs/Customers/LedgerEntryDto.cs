@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Customers
-{
-    /// <summary>Müştəri tarixçəsi (ledger) sətri.</summary>
-    public class LedgerEntryDto
+{    public class LedgerEntryDto
     {
         public int Id { get; set; }
         public DateTime Date { get; set; }

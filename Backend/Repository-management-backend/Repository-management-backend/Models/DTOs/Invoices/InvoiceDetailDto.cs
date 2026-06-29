@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Invoices
-{
-    /// <summary>Tam qaimə detalları + mallar.</summary>
-    public class InvoiceDetailDto
+{    public class InvoiceDetailDto
     {
         public int Id { get; set; }
         public string InvoiceNo { get; set; } = string.Empty;

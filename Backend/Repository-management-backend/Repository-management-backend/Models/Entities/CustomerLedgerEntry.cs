@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.Entities
 {
-    /// <summary>Müştəri tarixçəsi (ledger).
-    /// Borc = Σ DebtChange, Depozit = Σ DepositChange.</summary>
     public class CustomerLedgerEntry
     {
         public int Id { get; set; }
@@ -13,11 +11,11 @@ namespace Repository_management_backend.Models.Entities
         public Invoice? Invoice { get; set; }
 
         public DateTime Date { get; set; } = DateTime.UtcNow;
-        public string Type { get; set; } = string.Empty;   // "Mal götürüb", "Borc ödədi", "Depozit əlavə olunub", ...
+        public string Type { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public decimal DebtChange { get; set; }
         public decimal DepositChange { get; set; }
         public string? Note { get; set; }
-        public string? Source { get; set; }                // "invoice" / "manual"
+        public string? Source { get; set; }
     }
 }

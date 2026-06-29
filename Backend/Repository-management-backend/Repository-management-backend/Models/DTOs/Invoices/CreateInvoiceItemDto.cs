@@ -1,6 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Invoices
 {
-    /// <summary>Qaimə malı (yazma). Subtotal frontend hesablama məntiqindən gəlir.</summary>
     public class CreateInvoiceItemDto
     {
         public string Category { get; set; } = string.Empty;
@@ -17,13 +16,11 @@ namespace Repository_management_backend.Models.DTOs.Invoices
         public bool IsRecurring { get; set; } = true;
         public bool IsFixedFee { get; set; }
 
-        // Günlük mal
         public string? RentMode { get; set; }
         public DateTime? DueDate { get; set; }
         public int? DayCount { get; set; }
         public decimal? DailyPrice { get; set; }
 
-        // Lesa komponentləri
         public int? LesaHeadCount { get; set; }
         public decimal? LesaHeadPrice { get; set; }
         public int? LesaLongRodCount { get; set; }
@@ -32,7 +29,6 @@ namespace Repository_management_backend.Models.DTOs.Invoices
         public int? LesaExtraTaxtaCount { get; set; }
         public decimal? LesaExtraTaxtaPrice { get; set; }
 
-        // Təkərli lesa komponentləri
         public int? HeadCount { get; set; }
         public int? RodCount { get; set; }
         public int? VilkaCount { get; set; }
@@ -40,7 +36,6 @@ namespace Repository_management_backend.Models.DTOs.Invoices
         public int? ExtraBoardCount { get; set; }
         public decimal? ExtraBoardPrice { get; set; }
 
-        // Dəmir dirək
         public int? PoleCategoryId { get; set; }
         public int? PalesCount { get; set; }
     }

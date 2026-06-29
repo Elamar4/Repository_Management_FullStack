@@ -12,7 +12,6 @@ namespace Repository_management_backend.Security
         string? Name { get; }
     }
 
-    /// <summary>Cari istifadəçi/filial məlumatını cookie claim-lərindən oxuyur.</summary>
     public class CurrentUserService : ICurrentUserService
     {
         private readonly IHttpContextAccessor _http;

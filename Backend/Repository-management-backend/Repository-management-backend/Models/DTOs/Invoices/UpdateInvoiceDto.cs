@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Invoices
-{
-    /// <summary>Qaimə redaktəsi. Mallar tam əvəz olunur.</summary>
-    public class UpdateInvoiceDto
+{    public class UpdateInvoiceDto
     {
         public int Id { get; set; }
         public int CustomerId { get; set; }

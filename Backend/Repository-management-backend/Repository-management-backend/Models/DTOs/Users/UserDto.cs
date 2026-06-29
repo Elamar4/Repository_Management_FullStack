@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Users
-{
-    /// <summary>Oxuma üçün — şifrə hash-i HEÇ VAXT göndərilmir.</summary>
-    public class UserDto
+{    public class UserDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -15,6 +13,6 @@ namespace Repository_management_backend.Models.DTOs.Users
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
         public DateTime? LastLogoutAt { get; set; }
-        public bool IsOnline { get; set; }   // sistemdə aktiv (login > logout və sessiya pəncərəsində)
+        public bool IsOnline { get; set; }
     }
 }

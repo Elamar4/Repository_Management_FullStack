@@ -1,6 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Invoices
 {
-    /// <summary>Qaimə siyahısı sətri. Status hesablanır (overdue/today/soon/normal/closed).</summary>
     public class InvoiceListItemDto
     {
         public int Id { get; set; }
@@ -15,7 +14,7 @@ namespace Repository_management_backend.Models.DTOs.Invoices
         public decimal DepositAmount { get; set; }
         public decimal RemainingDebt { get; set; }
         public bool IsClosed { get; set; }
-        public string Status { get; set; } = "normal";   // overdue/today/soon/normal/closed
+        public string Status { get; set; } = "normal";
         public int DaysUntilReturn { get; set; }
         public int ItemCount { get; set; }
     }

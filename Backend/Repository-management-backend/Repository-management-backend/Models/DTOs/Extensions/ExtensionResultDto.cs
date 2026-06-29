@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Extensions
-{
-    /// <summary>Müddət artırmadan sonra qaimənin yenilənmiş vəziyyəti.</summary>
-    public class ExtensionResultDto
+{    public class ExtensionResultDto
     {
         public int InvoiceId { get; set; }
         public DateTime NewReturnDate { get; set; }

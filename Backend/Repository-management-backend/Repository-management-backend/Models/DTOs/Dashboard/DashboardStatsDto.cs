@@ -1,7 +1,5 @@
 namespace Repository_management_backend.Models.DTOs.Dashboard
-{
-    /// <summary>Filial üzrə ümumi statistika.</summary>
-    public class DashboardStatsDto
+{    public class DashboardStatsDto
     {
         public int CustomerCount { get; set; }
         public int InvoiceCount { get; set; }
@@ -12,9 +10,9 @@ namespace Repository_management_backend.Models.DTOs.Dashboard
         public int DueTodayCount { get; set; }
         public int DueSoonCount { get; set; }
 
-        public decimal TotalDebt { get; set; }      // Σ ledger DebtChange
-        public decimal TotalDeposit { get; set; }   // Σ ledger DepositChange
-        public decimal TotalPaid { get; set; }      // Σ qaimə PaidAmount
+        public decimal TotalDebt { get; set; }
+        public decimal TotalDeposit { get; set; }
+        public decimal TotalPaid { get; set; }
 
         public int InventoryItemCount { get; set; }
     }

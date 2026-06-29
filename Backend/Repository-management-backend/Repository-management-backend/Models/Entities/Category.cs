@@ -2,7 +2,6 @@ using Repository_management_backend.Models.Enums;
 
 namespace Repository_management_backend.Models.Entities
 {
-    /// <summary>Kateqoriya — standart mal / əlavə / xidmət / dəmir dirək ölçüsü.</summary>
     public class Category
     {
         public int Id { get; set; }
@@ -18,7 +17,6 @@ namespace Repository_management_backend.Models.Entities
         public string? Note { get; set; }
         public RentType RentType { get; set; } = RentType.Monthly;
 
-        // Alt-kateqoriya (məs. Dəmir dirək ölçüləri ana kateqoriyaya bağlı)
         public int? ParentId { get; set; }
         public Category? Parent { get; set; }
         public ICollection<Category> Children { get; set; } = new List<Category>();

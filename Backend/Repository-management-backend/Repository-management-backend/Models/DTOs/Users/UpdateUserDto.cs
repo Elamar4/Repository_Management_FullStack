@@ -1,9 +1,7 @@
 using Repository_management_backend.Models.Enums;
 
 namespace Repository_management_backend.Models.DTOs.Users
-{
-    /// <summary>Mövcud işçini redaktə etmək üçün. Şifrə ayrıca endpoint-lə dəyişdirilir.</summary>
-    public class UpdateUserDto
+{    public class UpdateUserDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
