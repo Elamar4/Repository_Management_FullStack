@@ -7,6 +7,7 @@ namespace Repository_management_backend.Services
         Task<List<InvoiceListItemDto>> GetAllAsync(string? search, string? status);
         Task<InvoiceDetailDto?> GetByIdAsync(int id);
         Task<InvoicePrintDto?> GetForPrintAsync(int id);
+        Task<string> GetNextInvoiceNoAsync();
         Task<ServiceResult<InvoiceDetailDto>> CreateAsync(CreateInvoiceDto dto);
         Task<ServiceResult<InvoiceDetailDto>> UpdateAsync(UpdateInvoiceDto dto);
         Task<ServiceResult> CloseAsync(int id);

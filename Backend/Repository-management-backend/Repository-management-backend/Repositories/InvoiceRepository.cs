@@ -42,22 +42,27 @@ namespace Repository_management_backend.Repositories
                 .Include(i => i.Items)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
-        // Filial daxilində ardıcıl nömrə (mövcud ən böyük rəqəm + 1, 4 rəqəmli)
+        // Filial + il üzrə ardıcıl nömrə: QM-2026-000001
         public async Task<string> GenerateInvoiceNoAsync(int branchId)
         {
+            var prefix = $"QM-{DateTime.UtcNow.Year}-";
             var numbers = await _db.Invoices
                 .IgnoreQueryFilters()
-                .Where(i => i.BranchId == branchId)
+                .Where(i => i.BranchId == branchId && i.InvoiceNo.StartsWith(prefix))
                 .Select(i => i.InvoiceNo)
                 .ToListAsync();
 
             int max = 0;
             foreach (var n in numbers)
-                if (int.TryParse(new string((n ?? "").Where(char.IsDigit).ToArray()), out var v) && v > max)
+                if (int.TryParse(n.Substring(prefix.Length), out var v) && v > max)
                     max = v;
 
-            return (max + 1).ToString("D4");
+            return prefix + (max + 1).ToString("D6");
         }
+
+        public async Task<bool> InvoiceNoExistsAsync(int branchId, string invoiceNo) =>
+            await _db.Invoices.IgnoreQueryFilters()
+                .AnyAsync(i => i.BranchId == branchId && i.InvoiceNo == invoiceNo);
 
         public async Task<Customer?> GetCustomerAsync(int customerId) =>
             await _db.Customers.FirstOrDefaultAsync(c => c.Id == customerId);

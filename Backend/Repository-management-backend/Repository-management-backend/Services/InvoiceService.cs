@@ -71,6 +71,9 @@ namespace Repository_management_backend.Services
             };
         }
 
+        public Task<string> GetNextInvoiceNoAsync() =>
+            _repo.GenerateInvoiceNoAsync(_current.BranchId);
+
         // ---- Yaratma ----
 
         public async Task<ServiceResult<InvoiceDetailDto>> CreateAsync(CreateInvoiceDto dto)
@@ -88,9 +91,16 @@ namespace Repository_management_backend.Services
             if (dto.ReturnDate.Date < dto.InvoiceDate.Date)
                 return ServiceResult<InvoiceDetailDto>.Fail("Qaytarma tarixi qaimə tarixindən əvvəl ola bilməz.");
 
+            // Nömrə: boşdursa avtomatik yarat; verilibsə unikal olmalıdır
+            var no = dto.InvoiceNo?.Trim();
+            if (string.IsNullOrWhiteSpace(no))
+                no = await _repo.GenerateInvoiceNoAsync(_current.BranchId);
+            else if (await _repo.InvoiceNoExistsAsync(_current.BranchId, no))
+                return ServiceResult<InvoiceDetailDto>.Fail($"'{no}' nömrəli qaimə bu filialda artıq mövcuddur.");
+
             var invoice = new Invoice
             {
-                InvoiceNo = await _repo.GenerateInvoiceNoAsync(_current.BranchId),
+                InvoiceNo = no!,
                 BranchId = _current.BranchId,
                 CustomerId = customer.Id,
                 CustomerNameSnapshot = customer.Name,

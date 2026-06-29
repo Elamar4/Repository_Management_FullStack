@@ -890,7 +890,7 @@ async function renderInvoiceTable() {
   }
   invoiceTable.innerHTML = list.map(inv => `
     <tr class="${getInvoiceUrgency(inv).cls}">
-      <td><strong>${escapeHtml(inv.invoiceNo || '-')}</strong></td>
+      <td><strong>${escapeHtml(inv.invoiceNo || '-')}</strong><div class="phone-mini">ID: ${inv.id}</div></td>
       <td>${escapeHtml(inv.customerName || '-')}</td>
       <td>${escapeHtml(inv.phone || '-')}</td>
       <td>${formatDate(inv.returnDate)}</td>

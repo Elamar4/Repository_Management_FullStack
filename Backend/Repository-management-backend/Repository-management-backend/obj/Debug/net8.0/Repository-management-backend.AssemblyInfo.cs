@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Repository-management-backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b4bc8591b53842e5a06227dde63cd28ec6b3c7b0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de9b7793085d07e407bb26c993a5f35e2d4133ff")]
 [assembly: System.Reflection.AssemblyProductAttribute("Repository-management-backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Repository-management-backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

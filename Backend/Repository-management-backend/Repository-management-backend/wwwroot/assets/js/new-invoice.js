@@ -310,7 +310,7 @@ function setTodayDefaults() {
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     returnDate.value = formatDateToInput(nextMonth);
   }
-  if (!invoiceNo.value.trim()) invoiceNo.value = generateInvoiceNo();
+  // Qaimə nömrəsi avtomatik doldurulmur — istifadəçi özü daxil edir (boş qoyularsa backend verir)
 }
 
 function syncReturnDateToNextMonth() {
@@ -403,7 +403,7 @@ function refreshCategoryUI() {
 
   if (category === 'Əlavə kateqoriya') {
     setVariantOptions(extraCategories);
-    const current = extraCategories.find(x => x.id === itemVariant.value) || extraCategories[0];
+    const current = extraCategories.find(x => String(x.id) === String(itemVariant.value)) || extraCategories[0];
     itemPrice.value = current ? formatMoney(current.price) : '0.00';
     itemNote.value = current?.note || '';
     // Günlük tipli əlavə kateqoriyada "Miqdar" = gün sayı
@@ -413,7 +413,7 @@ function refreshCategoryUI() {
 
   if (category === 'Xidmət') {
     setVariantOptions(serviceCategories);
-    const current = serviceCategories.find(x => x.id === itemVariant.value) || serviceCategories[0];
+    const current = serviceCategories.find(x => String(x.id) === String(itemVariant.value)) || serviceCategories[0];
     itemPrice.value = current ? formatMoney(current.price) : '0.00';
     itemQuantity.value = '1';
     itemNote.value = current?.note || '';
@@ -479,19 +479,32 @@ function renderCustomerList(list) {
     return;
   }
 
+  // Atribut dəyərlərini təhlükəsiz kodla (dırnaq və s. üçün)
+  const ea = v => String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   customerList.innerHTML = list.map(customer => `
-    <button type="button" class="customer-item" data-id="${customer.id}">
-      <div class="customer-item-name">${customer.name || '-'}</div>
-      <div class="customer-item-meta">Telefon: ${customer.phone || '-'}</div>
-      <div class="customer-item-meta">Əlavə telefon: ${customer.extraPhone || '-'}</div>
-      <div class="customer-item-meta">Ünvan: ${customer.address || '-'}</div>
+    <button type="button" class="customer-item"
+      data-id="${ea(customer.id)}" data-name="${ea(customer.name)}"
+      data-phone="${ea(customer.phone)}" data-extra="${ea(customer.extraPhone)}"
+      data-address="${ea(customer.address)}">
+      <div class="customer-item-name">${ea(customer.name || '-')}</div>
+      <div class="customer-item-meta">Telefon: ${ea(customer.phone || '-')}</div>
+      <div class="customer-item-meta">Əlavə telefon: ${ea(customer.extraPhone || '-')}</div>
+      <div class="customer-item-meta">Ünvan: ${ea(customer.address || '-')}</div>
     </button>
   `).join('');
 
   customerList.querySelectorAll('.customer-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      const customer = customers.find(c => c.id === btn.dataset.id);
-      if (customer) selectCustomer(customer);
+      // Məlumat birbaşa data-* atributlarından — massiv axtarışından asılı deyil
+      selectCustomer({
+        id: btn.dataset.id,
+        name: btn.dataset.name,
+        phone: btn.dataset.phone,
+        extraPhone: btn.dataset.extra,
+        address: btn.dataset.address
+      });
     });
   });
 }
@@ -499,7 +512,9 @@ function renderCustomerList(list) {
 function filterCustomers() {
   const q = customerSearchInput.value.trim().toLowerCase();
   if (!q) return renderCustomerList(customers);
-  renderCustomerList(customers.filter(customer => [customer.name, customer.phone, customer.extraPhone, customer.address].join(' ').toLowerCase().includes(q)));
+  renderCustomerList(customers.filter(customer =>
+    [customer.name, customer.phone, customer.extraPhone, customer.address, String(customer.id)]
+      .join(' ').toLowerCase().includes(q)));
 }
 
 function saveCustomer() {
@@ -586,7 +601,7 @@ function addNormalItem() {
   }
 
   if (category === 'Əlavə kateqoriya') {
-    const selected = extraCategories.find(x => x.id === itemVariant.value);
+    const selected = extraCategories.find(x => String(x.id) === String(itemVariant.value));
     if (!selected) return alert('Əlavə kateqoriya seç.');
     label = selected.name;
     unit = selected.unit || 'ədəd';
@@ -603,7 +618,7 @@ function addNormalItem() {
   }
 
   if (category === 'Xidmət') {
-    const selected = serviceCategories.find(x => x.id === itemVariant.value);
+    const selected = serviceCategories.find(x => String(x.id) === String(itemVariant.value));
     if (!selected) return alert('Xidmət seç.');
     label = selected.name;
     unit = selected.unit || 'xidmət';
@@ -872,7 +887,7 @@ function recalcTotals() {
 }
 
 function validateInvoice() {
-  if (!invoiceNo.value.trim()) return alert('Qaimə nömrəsini daxil et.'), false;
+  // Qaimə nömrəsi məcburi deyil — boş qoyularsa backend avtomatik təyin edir
   if (!selectedCustomerName.value.trim()) return alert('Müştəri seç.'), false;
   if (!customerPhone.value.trim()) return alert('Müştəri telefonu boşdur.'), false;
   if (!invoiceDate.value || !returnDate.value) return alert('Tarix və ümumi təhvil tarixi mütləqdir.'), false;
@@ -951,6 +966,7 @@ function saveInvoice() {
 async function commitInvoice(invoice) {
   const num = v => (v === '' || v === null || v === undefined) ? null : Number(v);
   const dto = {
+    invoiceNo: invoice.invoiceNo || null,
     customerId: Number(invoice.customerId) || 0,
     phone: invoice.phone || null,
     extraPhone: invoice.extraPhone || null,
@@ -961,10 +977,13 @@ async function commitInvoice(invoice) {
     depositAmount: Number(invoice.depositAmount || 0),
     paidAmount: Number(invoice.paidAmount || 0),
     items: (invoice.items || []).map(it => ({
-      category: it.category || '', label: it.label || null, variantId: it.variantId || null,
-      size: it.size || null, unit: it.unit || null,
+      category: String(it.category || ''),
+      label: (it.label != null && it.label !== '') ? String(it.label) : null,
+      variantId: (it.variantId != null && it.variantId !== '') ? String(it.variantId) : null,
+      size: (it.size != null && it.size !== '') ? String(it.size) : null,
+      unit: (it.unit != null && it.unit !== '') ? String(it.unit) : null,
       quantity: Number(it.quantity || 0), customPrice: Number(it.customPrice || 0), subtotal: Number(it.subtotal || 0),
-      note: it.note || null,
+      note: (it.note != null && it.note !== '') ? String(it.note) : null,
       isReturnable: it.isReturnable !== false, isRecurring: it.isRecurring !== false, isFixedFee: !!it.isFixedFee,
       rentMode: it.rentMode || null, dueDate: it.dueDate || null, dayCount: num(it.dayCount), dailyPrice: num(it.dailyPrice),
       lesaHeadCount: num(it.lesaHeadCount), lesaHeadPrice: num(it.lesaHeadPrice), lesaLongRodCount: num(it.lesaLongRodCount),
@@ -975,14 +994,25 @@ async function commitInvoice(invoice) {
       poleCategoryId: it.poleCategoryId ? Number(it.poleCategoryId) : null, palesCount: num(it.palesCount)
     }))
   };
+  let createdId = null;
   try {
-    if (editInvoiceId) await API.invoices.update(editInvoiceId, { id: Number(editInvoiceId), ...dto });
-    else await API.invoices.create(dto);
+    if (editInvoiceId) {
+      await API.invoices.update(editInvoiceId, { id: Number(editInvoiceId), ...dto });
+    } else {
+      const created = await API.invoices.create(dto);
+      createdId = created && created.id;
+    }
   } catch (e) {
     return alert(e.message || 'Qaimə yadda saxlanmadı.');
   }
-  alert(editInvoiceId ? 'Qaimə yeniləndi.' : 'Qaimə yadda saxlanıldı.');
-  window.location.href = '/Home/Index';
+  if (editInvoiceId) {
+    alert('Qaimə yeniləndi.');
+    window.location.href = '/Home/Index';
+  } else {
+    // Yaradılan qaiməni aç — unikal ID və nömrə görünsün
+    alert('Qaimə yaradıldı.');
+    window.location.href = '/Invoice/Create?id=' + encodeURIComponent(createdId);
+  }
 }
 
 /* ===== Anbar qalığı yoxlaması (bloklamayan xəbərdarlıq) ===== */
@@ -1340,7 +1370,7 @@ async function loadInvoiceForEdit() {
   try { invoice = await API.invoices.get(editInvoiceId); }
   catch (e) { alert(e.message || 'Redaktə ediləcək qaimə tapılmadı.'); return; }
   pageHeading.textContent = 'Qaiməni edit et';
-  pageSubHeading.textContent = `${invoice.invoiceNo} nömrəli qaimə`;
+  pageSubHeading.textContent = `${invoice.invoiceNo} nömrəli qaimə · Unikal ID: ${invoice.id}`;
   invoiceDate.value = (invoice.invoiceDate || '').slice(0, 10);
   invoiceNo.value = invoice.invoiceNo || '';
   selectedCustomerId = invoice.customerId || '';

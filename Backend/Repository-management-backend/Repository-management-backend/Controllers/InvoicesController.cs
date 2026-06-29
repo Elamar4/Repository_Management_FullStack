@@ -23,6 +23,11 @@ namespace Repository_management_backend.Controllers
             [FromQuery] string? search, [FromQuery] string? status)
             => Ok(await _service.GetAllAsync(search, status));
 
+        // GET: /api/invoices/next-no  (cari filial üçün növbəti qaimə nömrəsi)
+        [HttpGet("next-no")]
+        public async Task<ActionResult<object>> GetNextNo()
+            => Ok(new { invoiceNo = await _service.GetNextInvoiceNoAsync() });
+
         // GET: /api/invoices/5
         [HttpGet("{id:int}")]
         public async Task<ActionResult<InvoiceDetailDto>> GetById(int id)

@@ -38,9 +38,22 @@
     }
 
     if (!res.ok) {
-      const msg = (data && data.error) ? data.error
-                : (data && data.title) ? data.title
-                : ("Xəta baş verdi (" + res.status + ")");
+      let msg;
+      if (data && data.errors && typeof data.errors === "object") {
+        // ASP.NET ModelState / FluentValidation ProblemDetails — sahə xətalarını göstər
+        const all = [];
+        Object.keys(data.errors).forEach(function (k) {
+          const v = data.errors[k];
+          if (Array.isArray(v)) v.forEach(x => all.push(x)); else all.push(String(v));
+        });
+        msg = all.join("\n");
+      } else if (data && data.error) {
+        msg = data.error;
+      } else if (data && data.title) {
+        msg = data.title;
+      } else {
+        msg = "Xəta baş verdi (" + res.status + ")";
+      }
       throw new ApiError(msg, res.status, data);
     }
     return data;
@@ -111,6 +124,7 @@
 
     invoices: {
       list:    (search, status) => get("/api/invoices" + qs({ search: search, status: status })),
+      nextNo:  ()        => get("/api/invoices/next-no"),
       get:     (id)      => get("/api/invoices/" + id),
       print:   (id)      => get("/api/invoices/" + id + "/print"),
       create:  (dto)     => post("/api/invoices", dto),

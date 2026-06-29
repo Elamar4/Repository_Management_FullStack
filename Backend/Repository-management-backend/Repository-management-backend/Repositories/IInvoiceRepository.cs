@@ -8,6 +8,7 @@ namespace Repository_management_backend.Repositories
         Task<Invoice?> GetByIdAsync(int id);            // mallar daxil
         Task<Invoice?> GetByIdTrackedAsync(int id);     // redaktə/silmə üçün (tracked, mallar daxil)
         Task<string> GenerateInvoiceNoAsync(int branchId);
+        Task<bool> InvoiceNoExistsAsync(int branchId, string invoiceNo);
         Task<Customer?> GetCustomerAsync(int customerId);
         Task RemoveLedgerForInvoiceAsync(int invoiceId);
         Task AddLedgerAsync(CustomerLedgerEntry entry);

@@ -3,6 +3,7 @@ namespace Repository_management_backend.Models.DTOs.Invoices
     /// <summary>Yeni qaimə. Snapshot sahələri boş qalsa müştəridən doldurulur.</summary>
     public class CreateInvoiceDto
     {
+        public string? InvoiceNo { get; set; }   // verilibsə və unikaldırsa istifadə olunur, yoxsa avtomatik
         public int CustomerId { get; set; }
         public string? Phone { get; set; }
         public string? ExtraPhone { get; set; }
