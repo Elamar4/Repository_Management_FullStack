@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Repository_management_backend.Data;
+using Repository_management_backend.Models.Entities;
+using Repository_management_backend.Models.Enums;
 using Repository_management_backend.Models.ViewModels;
 using Repository_management_backend.Security;
 using System.Security.Claims;
@@ -59,20 +61,43 @@ namespace Repository_management_backend.Controllers
                 return View(model);
             }
 
-            var branch = await _db.Branches.FirstOrDefaultAsync(b => b.Code == model.BranchCode);
-            if (branch == null)
+            Branch? branch;
+            if (user.Role == UserRole.Admin)
             {
-                ModelState.AddModelError(string.Empty, "Filial seçin.");
-                await PopulateBranchesAsync();
-                return View(model);
+                // Admin üçün filial seçimi tələb olunmur — seçilibsə onunla, yoxdursa öz filialı ilə daxil olur
+                branch = !string.IsNullOrWhiteSpace(model.BranchCode)
+                    ? await _db.Branches.FirstOrDefaultAsync(b => b.Code == model.BranchCode)
+                    : null;
+                branch ??= await _db.Branches.FirstOrDefaultAsync(b => b.Id == user.BranchId);
+                if (branch == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Filial tapılmadı. Admin ilə əlaqə saxlayın.");
+                    await PopulateBranchesAsync();
+                    return View(model);
+                }
             }
-
-            // İşçi yalnız öz filialı ilə girə bilər
-            if (branch.Id != user.BranchId)
+            else
             {
-                ModelState.AddModelError(string.Empty, "Bu işçi seçilmiş filiala aid deyil.");
-                await PopulateBranchesAsync();
-                return View(model);
+                // İşçi/Menecer üçün filial məcburidir və yalnız öz filialı ilə girə bilər
+                if (string.IsNullOrWhiteSpace(model.BranchCode))
+                {
+                    ModelState.AddModelError(string.Empty, "Filial seçin.");
+                    await PopulateBranchesAsync();
+                    return View(model);
+                }
+                branch = await _db.Branches.FirstOrDefaultAsync(b => b.Code == model.BranchCode);
+                if (branch == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Filial seçin.");
+                    await PopulateBranchesAsync();
+                    return View(model);
+                }
+                if (branch.Id != user.BranchId)
+                {
+                    ModelState.AddModelError(string.Empty, "Bu işçi seçilmiş filiala aid deyil.");
+                    await PopulateBranchesAsync();
+                    return View(model);
+                }
             }
 
             // Status üçün: uğurlu girişdə son giriş vaxtı SQL-ə yazılır

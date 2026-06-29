@@ -95,7 +95,7 @@ namespace Repository_management_backend.Services
                 return ServiceResult<InventoryStockDto>.Fail("Filial təyin olunmayıb. Yenidən daxil olun.");
             if (dto.TotalCount < 0)
                 return ServiceResult<InventoryStockDto>.Fail("Say mənfi ola bilməz.");
-            if (await _repo.NameExistsAsync(dto.Name))
+            if (await _repo.NameExistsAsync(dto.Name, _current.BranchId))
                 return ServiceResult<InventoryStockDto>.Fail("Bu adda anbar malı artıq var.");
 
             var stock = _mapper.Map<InventoryStock>(dto);
@@ -117,7 +117,7 @@ namespace Repository_management_backend.Services
                 return ServiceResult<InventoryStockDto>.Fail("Anbar malı tapılmadı.");
             if (dto.TotalCount < 0)
                 return ServiceResult<InventoryStockDto>.Fail("Say mənfi ola bilməz.");
-            if (await _repo.NameExistsAsync(dto.Name, excludeId: dto.Id))
+            if (await _repo.NameExistsAsync(dto.Name, stock.BranchId, excludeId: dto.Id))
                 return ServiceResult<InventoryStockDto>.Fail("Bu adda anbar malı artıq var.");
 
             stock.Name = dto.Name.Trim();

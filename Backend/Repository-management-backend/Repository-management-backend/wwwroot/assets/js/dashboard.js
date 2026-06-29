@@ -786,6 +786,18 @@ async function renderAlerts() {
           </div>`).join('')}
       </div>
     </div>`;
+
+  // Maksimum 4 bildiriş göstər — qalanı üçün yalnız panel daxili şaquli scroll
+  const listEl = alertsBox.querySelector('.alert-list');
+  if (listEl) {
+    const items = listEl.querySelectorAll('.alert-item');
+    if (items.length > 4) {
+      const maxH = items[4].offsetTop - items[0].offsetTop;
+      listEl.style.maxHeight = maxH + 'px';
+      listEl.style.overflowY = 'auto';
+      listEl.style.paddingRight = '6px';
+    }
+  }
 }
 
 async function renderStats() {
@@ -2816,6 +2828,7 @@ async function renderCustomers() {
         <div class="customer-row-actions">
           <button class="action-btn edit" onclick="toggleCustomerDetail('${item.id}')">Ətraflı</button>
           <button class="action-btn return" onclick="toggleCustomerHistory('${item.id}')">Tarixçə</button>
+          <button class="action-btn print" onclick="printCustomerInvoices('${item.id}')">Bütün qaimələri çap et</button>
           <button class="action-btn close" onclick="openCustomerTransactionModal('${item.id}','debt-add')">Borc əlavə et</button>
           <button class="action-btn print" onclick="openCustomerTransactionModal('${item.id}','payment')">Ödəniş et</button>
           <button class="action-btn return" onclick="openCustomerTransactionModal('${item.id}','deposit-to-debt')">Depozitlə ödə</button>
@@ -3248,6 +3261,42 @@ function saveReturnOperation(){
     .then(() => { closeModal(returnModal); returnInvoiceData = null; alert('Qaytarma tətbiq edildi.'); renderAll(); })
     .catch(e => alert(e.message || 'Qaytarma alınmadı.'));
 }
+
+// ===== Müştərinin BÜTÜN qaimələri — bir çap sənədi (API) =====
+window.printCustomerInvoices = async function(customerId){
+  let data;
+  try { data = await API.customers.invoicesPrint(customerId); }
+  catch (e) { return alert(e.message || 'Çap məlumatı yüklənmədi.'); }
+  const list = data.invoices || [];
+  if (!list.length) return alert('Bu müştərinin qaiməsi yoxdur.');
+  const esc = v => String(v ?? '-').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const m = v => Number(v || 0).toFixed(2) + ' AZN';
+
+  const blocks = list.map(inv => {
+    const rows = (inv.items || []).map(it => `<tr><td>${esc(it.category)}</td><td>${esc(it.label || it.size || '')}</td><td class="center">${Number(it.quantity || 0)}</td><td class="center">${esc(it.unit || 'ədəd')}</td><td class="money">${m(it.customPrice)}</td><td class="money">${m(it.subtotal)}</td></tr>`).join('');
+    return `
+      <div class="inv-block">
+        <h2>Qaimə ${esc(inv.invoiceNo)}${inv.isClosed ? ' (Bağlı)' : ''}</h2>
+        <div class="muted">İcarə: ${formatDate(inv.invoiceDate)} · Qaytarma: ${formatDate(inv.returnDate)}</div>
+        <table><thead><tr><th>Kateqoriya</th><th>Ad/Ölçü</th><th>Say</th><th>Vahid</th><th>Qiymət</th><th>Cəm</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="6">Mal yoxdur</td></tr>'}</tbody></table>
+        <div class="tot"><strong>Ümumi:</strong> ${m(inv.totalAmount)} · <strong>Ödənilib:</strong> ${m(inv.paidAmount)} · <strong>Depozit:</strong> ${m(inv.depositAmount)} · <strong>Qalıq borc:</strong> ${m(inv.remainingDebt)}</div>
+      </div>`;
+  }).join('<hr/>');
+
+  const grandTotal = list.reduce((s, i) => s + Number(i.totalAmount || 0), 0);
+  const grandDebt = list.reduce((s, i) => s + Number(i.remainingDebt || 0), 0);
+
+  const w = window.open('', '_blank', 'width=950,height=950');
+  if (!w) return;
+  w.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>${esc(data.customerName)} — bütün qaimələr</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{font-size:20px;margin:0 0 2px}h2{font-size:16px;margin:14px 0 4px}table{width:100%;border-collapse:collapse;margin-top:6px}th,td{border:1px solid #cbd5e1;padding:5px 8px;font-size:12px;text-align:left}th{background:#f8fafc}.center{text-align:center}.money{text-align:right}.muted{color:#555;font-size:12px}.tot{margin-top:6px;font-size:12px}.inv-block{page-break-inside:avoid}hr{border:none;border-top:1px dashed #cbd5e1;margin:14px 0}.grand{margin-top:18px;font-size:14px;border-top:2px solid #111;padding-top:8px}</style></head><body>`
+    + `<h1>${esc(data.companyName)} — ${esc(data.customerName)}</h1>`
+    + `<div class="muted">${esc(data.branchName || '')} · ${esc(data.phone || '')} · Çap: ${formatDate(new Date().toISOString())} · Qaimə sayı: ${list.length}</div>`
+    + blocks
+    + `<div class="grand"><strong>YEKUN — Ümumi məbləğ:</strong> ${m(grandTotal)} · <strong>Ümumi qalıq borc:</strong> ${m(grandDebt)}</div>`
+    + `</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
+};
 
 // Apply v19 overrides after page load.
 try { renderAll(); } catch (e) { console.error('v19 render refresh error', e); }

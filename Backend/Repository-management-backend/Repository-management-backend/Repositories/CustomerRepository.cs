@@ -25,6 +25,14 @@ namespace Repository_management_backend.Repositories
             return await q.OrderByDescending(i => i.InvoiceDate).ToListAsync();
         }
 
+        public async Task<List<Invoice>> GetInvoicesWithItemsAsync(int customerId) =>
+            await _db.Invoices.AsNoTracking()
+                .Include(i => i.Items)
+                .Include(i => i.Branch)
+                .Where(i => i.CustomerId == customerId)
+                .OrderByDescending(i => i.InvoiceDate)
+                .ToListAsync();
+
         public async Task<List<CustomerLedgerEntry>> GetLedgerAsync(int customerId) =>
             await _db.CustomerLedgerEntries
                 .AsNoTracking()

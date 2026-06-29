@@ -9,6 +9,7 @@ namespace Repository_management_backend.Repositories
         Task<List<Customer>> GetAllAsync();
         Task<Customer?> GetByIdAsync(int id);
         Task<List<Invoice>> GetInvoicesAsync(int customerId, bool? closed = null);
+        Task<List<Invoice>> GetInvoicesWithItemsAsync(int customerId);   // çap üçün (mallar + filial)
         Task<List<CustomerLedgerEntry>> GetLedgerAsync(int customerId);
         Task<CustomerBalance> GetBalanceAsync(int customerId);
         Task<Dictionary<int, CustomerBalance>> GetBalancesAsync();

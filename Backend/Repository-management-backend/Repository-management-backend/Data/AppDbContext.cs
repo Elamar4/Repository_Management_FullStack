@@ -10,12 +10,17 @@ namespace Repository_management_backend.Data
     {
         // Cari filial (cookie claim-dən). Branch izolyasiya query filter-ləri bunu işlədir.
         private readonly int _currentBranchId;
+        // Admin filial məhdudiyyətinə tabe deyil — bütün filialları görür/idarə edir.
+        private readonly bool _isAdmin;
 
         public AppDbContext(DbContextOptions<AppDbContext> options,
                             IHttpContextAccessor? httpContextAccessor = null) : base(options)
         {
-            var raw = httpContextAccessor?.HttpContext?.User?.FindFirst("BranchId")?.Value;
+            var user = httpContextAccessor?.HttpContext?.User;
+            var raw = user?.FindFirst("BranchId")?.Value;
             _currentBranchId = int.TryParse(raw, out var b) ? b : 0;
+            var role = user?.FindFirst(ClaimTypes.Role)?.Value;
+            _isAdmin = string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase);
         }
 
         public DbSet<Branch> Branches => Set<Branch>();
@@ -171,10 +176,11 @@ namespace Repository_management_backend.Data
 
             // ---------------- BRANCH İZOLYASİYASI (Global Query Filter) ----------------
             // Hər sorğu avtomatik cari filiala görə süzülür. _currentBranchId cookie claim-dən gəlir.
-            b.Entity<Customer>().HasQueryFilter(e => e.BranchId == _currentBranchId);
-            b.Entity<Invoice>().HasQueryFilter(e => e.BranchId == _currentBranchId);
-            b.Entity<Category>().HasQueryFilter(e => e.BranchId == _currentBranchId);
-            b.Entity<InventoryStock>().HasQueryFilter(e => e.BranchId == _currentBranchId);
+            // Admin (_isAdmin) bütün filialları görür; digər rollar yalnız öz filialını.
+            b.Entity<Customer>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
+            b.Entity<Invoice>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
+            b.Entity<Category>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
+            b.Entity<InventoryStock>().HasQueryFilter(e => _isAdmin || e.BranchId == _currentBranchId);
 
             // ---------------- Seed: Filiallar (migration ilə) ----------------
             b.Entity<Branch>().HasData(

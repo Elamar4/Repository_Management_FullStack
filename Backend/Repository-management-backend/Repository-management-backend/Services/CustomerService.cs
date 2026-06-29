@@ -1,5 +1,6 @@
 using AutoMapper;
 using Repository_management_backend.Models.DTOs.Customers;
+using Repository_management_backend.Models.DTOs.Invoices;
 using Repository_management_backend.Models.Entities;
 using Repository_management_backend.Repositories;
 using Repository_management_backend.Security;
@@ -71,6 +72,23 @@ namespace Repository_management_backend.Services
             profile.Ledger = _mapper.Map<List<LedgerEntryDto>>(ledger);
 
             return profile;
+        }
+
+        public async Task<CustomerPrintDto?> GetInvoicesPrintAsync(int id)
+        {
+            var customer = await _repo.GetByIdAsync(id);
+            if (customer == null) return null;
+
+            var invoices = await _repo.GetInvoicesWithItemsAsync(id);
+            return new CustomerPrintDto
+            {
+                CompanyName = "Kapital A.S. MMC",
+                BranchName = invoices.FirstOrDefault()?.Branch?.Name,
+                CustomerName = customer.Name,
+                Phone = customer.Phone,
+                PrintedAt = DateTime.Now,
+                Invoices = _mapper.Map<List<InvoiceDetailDto>>(invoices)
+            };
         }
 
         public async Task<List<InvoiceSummaryDto>> GetInvoicesAsync(int id, bool? closed)

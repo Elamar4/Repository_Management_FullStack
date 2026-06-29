@@ -17,11 +17,12 @@ namespace Repository_management_backend.Repositories
         public async Task<InventoryStock?> GetByIdAsync(int id) =>
             await _db.InventoryStocks.FirstOrDefaultAsync(s => s.Id == id);
 
-        public async Task<bool> NameExistsAsync(string name, int? excludeId = null)
+        public async Task<bool> NameExistsAsync(string name, int branchId, int? excludeId = null)
         {
             var n = name.Trim().ToLower();
-            return await _db.InventoryStocks.AnyAsync(s =>
-                s.Name.ToLower() == n && (excludeId == null || s.Id != excludeId));
+            // IgnoreQueryFilters + BranchId: yoxlama yalnız hədəf filiala aiddir (admin də daxil)
+            return await _db.InventoryStocks.IgnoreQueryFilters().AnyAsync(s =>
+                s.BranchId == branchId && s.Name.ToLower() == n && (excludeId == null || s.Id != excludeId));
         }
 
         // Açıq qaimələrdə qaytarılan (IsReturnable) və hələ tam qaytarılmamış mallar.

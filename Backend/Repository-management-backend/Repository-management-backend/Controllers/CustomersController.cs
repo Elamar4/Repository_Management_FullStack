@@ -38,6 +38,14 @@ namespace Repository_management_backend.Controllers
             return p == null ? NotFound(new { error = "Müştəri tapılmadı." }) : Ok(p);
         }
 
+        // GET: /api/customers/5/invoices/print  (müştərinin BÜTÜN qaimələri — bir çap sənədi)
+        [HttpGet("{id:int}/invoices/print")]
+        public async Task<ActionResult<CustomerPrintDto>> GetInvoicesPrint(int id)
+        {
+            var p = await _service.GetInvoicesPrintAsync(id);
+            return p == null ? NotFound(new { error = "Müştəri tapılmadı." }) : Ok(p);
+        }
+
         // GET: /api/customers/5/invoices?closed=false  (aktiv) | true (köhnə) | yoxdursa hamısı
         [HttpGet("{id:int}/invoices")]
         public async Task<ActionResult<List<InvoiceSummaryDto>>> GetInvoices(int id, [FromQuery] bool? closed)

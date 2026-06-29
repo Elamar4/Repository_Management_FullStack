@@ -20,7 +20,7 @@ namespace Repository_management_backend.Repositories
     {
         Task<List<InventoryStock>> GetAllAsync();
         Task<InventoryStock?> GetByIdAsync(int id);
-        Task<bool> NameExistsAsync(string name, int? excludeId = null);
+        Task<bool> NameExistsAsync(string name, int branchId, int? excludeId = null);
         Task<List<RentedRow>> GetOpenRentedRowsAsync();
         Task AddAsync(InventoryStock stock);
         void Update(InventoryStock stock);

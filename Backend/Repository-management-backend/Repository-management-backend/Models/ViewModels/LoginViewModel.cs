@@ -11,7 +11,7 @@ namespace Repository_management_backend.Models.ViewModels
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Filial seçin.")]
-        public string BranchCode { get; set; } = string.Empty;
+        // Filial yalnız İşçi/Menecer üçün məcburidir — yoxlama controller-də rola görə aparılır.
+        public string? BranchCode { get; set; }
     }
 }

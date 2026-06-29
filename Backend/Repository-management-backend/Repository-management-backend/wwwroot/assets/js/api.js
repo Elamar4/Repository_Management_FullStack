@@ -83,6 +83,7 @@
       get:     (id)      => get("/api/customers/" + id),
       profile: (id)      => get("/api/customers/" + id + "/profile"),
       invoices:(id, cl)  => get("/api/customers/" + id + "/invoices" + qs({ closed: cl })),
+      invoicesPrint:(id) => get("/api/customers/" + id + "/invoices/print"),
       ledger:  (id)      => get("/api/customers/" + id + "/ledger"),
       create:  (dto)     => post("/api/customers", dto),
       update:  (id, dto) => put("/api/customers/" + id, dto),
