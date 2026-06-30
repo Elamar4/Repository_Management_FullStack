@@ -55,8 +55,7 @@
               "RelativeToolTip": "Repository-management-backend\\Data\\AppDbContextFactory.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-29T15:20:35.294Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-29T15:20:35.294Z"
             },
             {
               "$type": "Document",
@@ -68,8 +67,7 @@
               "RelativeToolTip": "Repository-management-backend\\Data\\DbInitializer.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABcAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-29T14:59:47.937Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-29T14:59:47.937Z"
             },
             {
               "$type": "Document",
@@ -81,8 +79,7 @@
               "RelativeToolTip": "Repository-management-backend\\Controllers\\AccountController.cs",
               "ViewState": "AQIAADgAAAAAAAAAAAAwwEgAAAARAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-29T12:42:57.103Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-29T12:42:57.103Z"
             }
           ]
         }
