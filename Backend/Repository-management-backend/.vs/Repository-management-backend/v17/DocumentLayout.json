@@ -7,12 +7,12 @@
       "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\data\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\data\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\data\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|solutionrelative:repository-management-backend\\data\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{49C1AB89-F7EE-475A-AD9D-6EC4C916ED83}|Repository-management-backend\\Repository-management-backend.csproj|c:\\users\\elmar\\onedrive\\\u0130\u015F masas\u0131\\repository_management_system\\backend\\repository-management-backend\\repository-management-backend\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -40,14 +40,14 @@
               "RelativeDocumentMoniker": "Repository-management-backend\\Data\\AppDbContext.cs",
               "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContext.cs",
               "RelativeToolTip": "Repository-management-backend\\Data\\AppDbContext.cs",
-              "ViewState": "AQIAADkAAAAAAAAAAAAiwLAAAAA/AAAA",
+              "ViewState": "AQIAAJIAAAAAAAAAAAAQwJ4AAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-29T15:20:40.911Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "AppDbContextFactory.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\AppDbContextFactory.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Data\\AppDbContextFactory.cs",
@@ -55,19 +55,21 @@
               "RelativeToolTip": "Repository-management-backend\\Data\\AppDbContextFactory.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-29T15:20:35.294Z"
+              "WhenOpened": "2026-06-29T15:20:35.294Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "DbInitializer.cs",
               "DocumentMoniker": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\DbInitializer.cs",
               "RelativeDocumentMoniker": "Repository-management-backend\\Data\\DbInitializer.cs",
               "ToolTip": "C:\\Users\\Elmar\\OneDrive\\\u0130\u015F masas\u0131\\Repository_Management_System\\Backend\\Repository-management-backend\\Repository-management-backend\\Data\\DbInitializer.cs",
               "RelativeToolTip": "Repository-management-backend\\Data\\DbInitializer.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABcAAAAAAAAA",
+              "ViewState": "AQIAAAoAAAAAAAAAAAAAABwAAAB5AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-29T14:59:47.937Z"
+              "WhenOpened": "2026-06-29T14:59:47.937Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",

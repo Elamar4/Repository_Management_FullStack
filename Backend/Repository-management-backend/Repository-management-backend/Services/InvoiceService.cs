@@ -213,14 +213,9 @@ namespace Repository_management_backend.Services
             var invoice = await _repo.GetByIdTrackedAsync(id);
             if (invoice == null)
                 return ServiceResult.Fail("Qaimə tapılmadı.");
-            if (invoice.IsClosed)
-                return ServiceResult.Fail("Qaimə artıq bağlıdır.");
 
-            invoice.IsClosed = true;
-            invoice.ClosedAt = DateTime.UtcNow;
-            invoice.UpdatedAt = DateTime.UtcNow;
-
-            _repo.Update(invoice);
+            await _repo.RemoveLedgerForInvoiceAsync(id);
+            _repo.Remove(invoice);
             await _repo.SaveChangesAsync();
             return ServiceResult.Ok();
         }

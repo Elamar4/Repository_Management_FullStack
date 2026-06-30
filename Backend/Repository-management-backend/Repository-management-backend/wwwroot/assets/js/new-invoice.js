@@ -983,7 +983,7 @@ async function commitInvoice(invoice) {
       size: (it.size != null && it.size !== '') ? String(it.size) : null,
       unit: (it.unit != null && it.unit !== '') ? String(it.unit) : null,
       quantity: Number(it.quantity || 0), customPrice: Number(it.customPrice || 0), subtotal: Number(it.subtotal || 0),
-      note: (it.note != null && it.note !== '') ? String(it.note) : null,
+      note: (it.note != null && it.note !== '') ? String(it.note) : (standardInfoByName[it.category] || null),
       isReturnable: it.isReturnable !== false, isRecurring: it.isRecurring !== false, isFixedFee: !!it.isFixedFee,
       rentMode: it.rentMode || null, dueDate: it.dueDate || null, dayCount: num(it.dayCount), dailyPrice: num(it.dailyPrice),
       lesaHeadCount: num(it.lesaHeadCount), lesaHeadPrice: num(it.lesaHeadPrice), lesaLongRodCount: num(it.lesaLongRodCount),
@@ -1180,19 +1180,23 @@ renderCustomerList(customers);
 loadInvoiceForEdit();
 
 // ===== Modul 4b: SQL-dən hydrate (müştərilər + kateqoriyalar) =====
+let standardInfoByName = {};
 if (window.API) {
   Promise.all([
     API.customers.list().catch(() => []),
     API.categories.list('Extra').catch(() => []),
     API.categories.list('Service').catch(() => []),
-    API.categories.list('Pole').catch(() => [])
-  ]).then(([cs, ex, sv, po]) => {
+    API.categories.list('Pole').catch(() => []),
+    API.categories.list('Standard').catch(() => [])
+  ]).then(([cs, ex, sv, po, st]) => {
     customers = cs.map(c => ({ id: c.id, name: c.name, phone: c.phone || '', extraPhone: c.extraPhone || '', address: c.address || '', history: [] }))
                   .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'az'));
     extraCategories = ex.map(d => ({ id: d.id, name: d.name, price: Number(d.price || 0), unit: d.unit || '', note: d.note || '', type: d.rentType === 'Daily' ? 'daily' : 'monthly' }));
     serviceCategories = sv.map(d => ({ id: d.id, name: d.name, price: Number(d.price || 0), unit: d.unit || '', note: d.note || '', type: d.rentType === 'Daily' ? 'daily' : 'monthly' }));
     poleCatalogCache = po.map(d => ({ id: d.id, name: d.name, price: Number(d.price || 0), unit: d.unit || 'ədəd' }));
     poleCategories = poleCatalogCache.slice();
+    standardInfoByName = {};
+    (st || []).forEach(d => { if (d && d.name) standardInfoByName[d.name] = (d.info || '').trim(); });
     renderCustomerList(customers);
     try { if (typeof renderCategorySelect === 'function') renderCategorySelect(); } catch (e) {}
   });

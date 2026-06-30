@@ -39,6 +39,40 @@ namespace Repository_management_backend.Data
                 legacyAdmin.PasswordHash = hasher.Hash("Kapital@2026!");
                 db.SaveChanges();
             }
+
+            var standardGoods = new (string Name, decimal Price, string Unit, RentType Rent)[]
+            {
+                ("Lesa",          50m, "ədəd", RentType.Monthly),
+                ("Təkərli lesa",   5m, "ədəd", RentType.Daily),
+                ("Dəmir dirək",   30m, "ədəd", RentType.Monthly),
+                ("Taxta",         10m, "ədəd", RentType.Monthly),
+                ("Vibrator",       8m, "ədəd", RentType.Daily),
+            };
+
+            var added = false;
+            foreach (var branchId in db.Branches.Select(x => x.Id).ToList())
+            {
+                foreach (var g in standardGoods)
+                {
+                    var exists = db.Categories.IgnoreQueryFilters()
+                        .Any(c => c.BranchId == branchId && c.Kind == CategoryKind.Standard && c.Name == g.Name);
+                    if (!exists)
+                    {
+                        db.Categories.Add(new Category
+                        {
+                            BranchId = branchId,
+                            Kind = CategoryKind.Standard,
+                            Name = g.Name,
+                            Price = g.Price,
+                            Unit = g.Unit,
+                            RentType = g.Rent
+                        });
+                        added = true;
+                    }
+                }
+            }
+            if (added)
+                db.SaveChanges();
         }
     }
 }

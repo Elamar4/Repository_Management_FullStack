@@ -1655,7 +1655,8 @@ function switchSection(sectionId, clickedLink) {
     inventorySection: ['Anbar', 'Malların qalıq nəzarəti'],
     productsSection: ['Kateqoriyalar', 'Əlavə və xidmət kateqoriyaları'],
     reportsSection: ['Hesabatlar', 'Ümumi statistika'],
-    usersSection: ['İşçilər', 'İşçi idarəetməsi']
+    usersSection: ['İşçilər', 'İşçi idarəetməsi'],
+    branchesSection: ['Filiallar', 'Filialların idarə edilməsi']
   };
   var t = titles[sectionId] || ['', ''];
   pageTitle.textContent = t[0];
@@ -3063,23 +3064,33 @@ async function renderDebtsSection() {
   const summary = document.getElementById('debtSummaryGrid');
   if (!tbody || !summary) return;
   tbody.innerHTML = '<tr><td colspan="7">Yüklənir…</td></tr>';
-  let list, debtors;
+  let list, custs;
   try {
-    [list, debtors] = await Promise.all([API.invoices.list('', 'open'), API.reports.debtors().catch(() => ({ rows: [] }))]);
+    [list, custs] = await Promise.all([API.invoices.list('', 'open'), API.customers.list().catch(() => [])]);
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="7">Xəta: ' + escapeHtml(e.message || '') + '</td></tr>'; return;
   }
   const openDebts = list.filter(i => Number(i.remainingDebt || 0) > 0).sort((a, b) => Number(b.remainingDebt || 0) - Number(a.remainingDebt || 0));
   const overdueDebts = openDebts.filter(i => i.status === 'overdue');
-  const totalDebt = openDebts.reduce((s, i) => s + Number(i.remainingDebt || 0), 0);
   const overdueDebtAmount = overdueDebts.reduce((s, i) => s + Number(i.remainingDebt || 0), 0);
-  const top = (debtors.rows || [])[0];
+
+  const invDebtByCustomer = {};
+  openDebts.forEach(i => { const cid = String(i.customerId); invDebtByCustomer[cid] = (invDebtByCustomer[cid] || 0) + Number(i.remainingDebt || 0); });
+
+  const manualRows = (custs || [])
+    .map(c => ({ id: c.id, name: c.name, phone: c.phone || '', extra: Number(c.debt || 0) - (invDebtByCustomer[String(c.id)] || 0) }))
+    .filter(r => r.extra > 0.005)
+    .sort((a, b) => b.extra - a.extra);
+
+  const totalDebt = (custs || []).reduce((s, c) => s + Math.max(0, Number(c.debt || 0)), 0);
+  const topCust = (custs || []).filter(c => Number(c.debt || 0) > 0).sort((a, b) => Number(b.debt || 0) - Number(a.debt || 0))[0];
+
   summary.innerHTML = `
     <div class="report-box"><h4>Açıq borclu qaimələr</h4><strong>${openDebts.length}</strong><small>Bağlanmamış borclu qaimələr</small></div>
-    <div class="report-box"><h4>Ümumi borc</h4><strong>${formatMoney(totalDebt)}</strong><small>Aktiv borcların cəmi</small></div>
-    <div class="report-box"><h4>Gecikən borc</h4><strong>${formatMoney(overdueDebtAmount)}</strong><small>${overdueDebts.length} qaimə gecikib${top && Number(top.debt || 0) > 0 ? ` / Ən çox: ${escapeHtml(top.customerName)} (${formatMoney(top.debt)})` : ''}</small></div>`;
-  if (!openDebts.length) { tbody.innerHTML = '<tr><td colspan="7">Açıq borc yoxdur</td></tr>'; return; }
-  tbody.innerHTML = openDebts.map(inv => {
+    <div class="report-box"><h4>Ümumi borc</h4><strong>${formatMoney(totalDebt)}</strong><small>Aktiv borcların cəmi (manual daxil)</small></div>
+    <div class="report-box"><h4>Gecikən borc</h4><strong>${formatMoney(overdueDebtAmount)}</strong><small>${overdueDebts.length} qaimə gecikib${topCust && Number(topCust.debt || 0) > 0 ? ` / Ən çox: ${escapeHtml(topCust.name)} (${formatMoney(topCust.debt)})` : ''}</small></div>`;
+
+  const invoiceRowsHtml = openDebts.map(inv => {
     const overdue = inv.status === 'overdue';
     const delayDays = overdue ? Math.max(-(inv.daysUntilReturn || 0), 0) : 0;
     const riskClass = delayDays >= 7 ? 'row-risk-high' : delayDays >= 1 ? 'row-risk-medium' : 'row-risk-low';
@@ -3094,6 +3105,19 @@ async function renderDebtsSection() {
         <td><div class="action-cell"><button class="action-btn pay" onclick="openInvoicePaymentModal('${inv.id}')">Ödəniş et</button><button class="action-btn edit" onclick="editInvoice('${inv.id}')">Qaiməyə bax</button></div></td>
       </tr>`;
   }).join('');
+
+  const manualRowsHtml = manualRows.map(r => `
+      <tr>
+        <td><strong>${escapeHtml(r.name || '-')}</strong><div class="phone-mini">${escapeHtml(r.phone || '-')}</div></td>
+        <td><span class="badge">Manual borc</span></td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td><strong>${formatMoney(r.extra)}</strong></td>
+        <td><div class="action-cell"><button class="action-btn pay" onclick="openCustomerTransactionModal('${r.id}','payment')">Ödəniş et</button></div></td>
+      </tr>`).join('');
+
+  tbody.innerHTML = (invoiceRowsHtml + manualRowsHtml) || '<tr><td colspan="7">Açıq borc yoxdur</td></tr>';
 }
 
 async function renderDepositsSection() {
@@ -3208,6 +3232,42 @@ invoiceViewDeleteBtn?.addEventListener('click', () => { if (activeViewInvoiceId)
 invoiceViewModal?.addEventListener('click', e => { if (e.target === invoiceViewModal) closeModal(invoiceViewModal); });
 
 // ===== Modul 4: Çap — SQL Server (API) override =====
+// Qaimə malını çap üçün sətirlərə açır: Lesa/Təkərli lesa komponentləri ayrıca görünür.
+function printExpandRows(it){
+  const n = v => Number(v || 0);
+  const cat = it.category || '';
+  const lower = cat.toLowerCase();
+  const isTekerli = lower.indexOf('təkərli') !== -1;
+  const isLesa = !isTekerli && lower.indexOf('lesa') !== -1 &&
+    (n(it.lesaHeadCount) || n(it.lesaLongRodCount) || n(it.lesaShortRodCount) || n(it.lesaFreeTaxtaCount) || n(it.lesaExtraTaxtaCount));
+  const rows = [];
+  if (isLesa) {
+    const comps = [
+      ['Başlıq', n(it.lesaHeadCount), n(it.lesaHeadPrice)],
+      ['Uzun çubuq', n(it.lesaLongRodCount), 0],
+      ['Balaca çubuq', n(it.lesaShortRodCount), 0],
+      ['Taxta 5/15 3.00 (pulsuz)', n(it.lesaFreeTaxtaCount), 0],
+      ['Əlavə taxta 5/15 3.00', n(it.lesaExtraTaxtaCount), n(it.lesaExtraTaxtaPrice)]
+    ];
+    comps.forEach(c => { if (c[1] > 0) rows.push({ category: cat, name: c[0], qty: c[1], unit: 'ədəd', price: c[2], total: c[1] * c[2] }); });
+    if (rows.length) return rows;
+  }
+  if (isTekerli) {
+    const day = n(it.dayCount), daily = n(it.dailyPrice);
+    if (day > 0) rows.push({ category: cat, name: 'İcarə (günlük)', qty: day, unit: 'gün', price: daily, total: day * daily });
+    const comps = [
+      ['Başlıq', n(it.headCount), 0],
+      ['Çubuq', n(it.rodCount), 0],
+      ['Vilka', n(it.vilkaCount), 0],
+      ['Təkərli lesa taxtası', n(it.boardCount), 0],
+      ['Əlavə taxta', n(it.extraBoardCount), n(it.extraBoardPrice)]
+    ];
+    comps.forEach(c => { if (c[1] > 0) rows.push({ category: cat, name: c[0], qty: c[1], unit: 'ədəd', price: c[2], total: c[1] * c[2] }); });
+    if (rows.length) return rows;
+  }
+  return [{ category: cat, name: it.label || it.size || '', qty: n(it.quantity), unit: it.unit || 'ədəd', price: n(it.customPrice), total: n(it.subtotal), note: it.note || '' }];
+}
+
 window.printInvoice = async function(invoiceId){
   let data;
   try { data = await API.invoices.print(invoiceId); }
@@ -3215,7 +3275,7 @@ window.printInvoice = async function(invoiceId){
   const inv = data.invoice || {};
   const esc = v => String(v ?? '-').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const m = v => Number(v || 0).toFixed(2) + ' AZN';
-  const rows = (inv.items || []).map(it => `<tr><td>${esc(it.category)}</td><td>${esc(it.label || it.size || '')}</td><td class="center">${Number(it.quantity || 0)}</td><td class="center">${esc(it.unit || 'ədəd')}</td><td class="money">${m(it.customPrice)}</td><td class="money">${m(it.subtotal)}</td></tr>`).join('');
+  const rows = (inv.items || []).reduce((a, it) => a.concat(printExpandRows(it)), []).map(r => `<tr><td>${esc(r.category)}</td><td>${esc(r.name)}${r.note ? `<div style="color:#555;font-size:11px">${esc(r.note)}</div>` : ''}</td><td class="center">${r.qty}</td><td class="center">${esc(r.unit)}</td><td class="money">${m(r.price)}</td><td class="money">${m(r.total)}</td></tr>`).join('');
   const w = window.open('', '_blank', 'width=900,height=900');
   if (!w) return;
   w.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>Qaimə ${esc(inv.invoiceNo)}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{font-size:20px;margin:0 0 4px}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #cbd5e1;padding:6px 8px;font-size:13px;text-align:left}th{background:#f8fafc}.center{text-align:center}.money{text-align:right}.muted{color:#555;font-size:12px}.tot{margin-top:14px;font-size:14px}</style></head><body>`
@@ -3273,7 +3333,7 @@ window.printCustomerInvoices = async function(customerId){
   const m = v => Number(v || 0).toFixed(2) + ' AZN';
 
   const blocks = list.map(inv => {
-    const rows = (inv.items || []).map(it => `<tr><td>${esc(it.category)}</td><td>${esc(it.label || it.size || '')}</td><td class="center">${Number(it.quantity || 0)}</td><td class="center">${esc(it.unit || 'ədəd')}</td><td class="money">${m(it.customPrice)}</td><td class="money">${m(it.subtotal)}</td></tr>`).join('');
+    const rows = (inv.items || []).reduce((a, it) => a.concat(printExpandRows(it)), []).map(r => `<tr><td>${esc(r.category)}</td><td>${esc(r.name)}${r.note ? `<div style="color:#555;font-size:11px">${esc(r.note)}</div>` : ''}</td><td class="center">${r.qty}</td><td class="center">${esc(r.unit)}</td><td class="money">${m(r.price)}</td><td class="money">${m(r.total)}</td></tr>`).join('');
     return `
       <div class="inv-block">
         <h2>Qaimə ${esc(inv.invoiceNo)}${inv.isClosed ? ' (Bağlı)' : ''}</h2>

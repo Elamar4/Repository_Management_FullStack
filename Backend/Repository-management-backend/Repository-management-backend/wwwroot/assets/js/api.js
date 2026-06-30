@@ -11,6 +11,7 @@
     const opts = {
       method: method,
       credentials: "same-origin",
+      cache: "no-store",
       headers: { "Accept": "application/json" }
     };
     if (body !== undefined && body !== null) {
@@ -168,6 +169,15 @@
       password: (id, dto) => post("/api/users/" + id + "/password", dto),
       setActive:(id, val) => post("/api/users/" + id + "/active", { isActive: val }),
       remove:   (id)      => del("/api/users/" + id),
+    },
+
+    branches: {
+      list:        ()        => get("/api/branches"),
+      get:         (id)      => get("/api/branches/" + id),
+      create:      (dto)     => post("/api/branches", dto),
+      update:      (id, dto) => put("/api/branches/" + id, dto),
+      remove:      (id)      => del("/api/branches/" + id),
+      forceRemove: (id)      => del("/api/branches/" + id + "/force"),
     },
 
     reports: {
